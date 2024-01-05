@@ -1,0 +1,49 @@
+.pill-container input[type=checkbox] {
+    opacity: 0;
+    width: 0;
+}
+
+.pill-container input[type=radio] {
+    opacity: 0;
+    width: 0;
+}
+
+.selector {
+    letter-spacing: 1.1px;
+    /* -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale; */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+}
+
+.pill-container input[type=checkbox]:checked+label {
+    background: #FF4A60;
+    border: 1px solid white;
+    color: white;
+}
+
+.pill-container input[type=radio]:checked+label {
+    background: #FF4A60;
+    border: 1px solid white;
+    color: white;
+}
+
+/* Select button css here */
+
+.select_element {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+}
+
+.select_container::after {
+    content: url('../public/drop-down.svg');
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    z-index: 5
+}

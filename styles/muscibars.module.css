@@ -1,0 +1,74 @@
+.playing {
+    cursor: pointer;
+}
+
+  .now.playing .bar {
+    display: inline-block;
+    position: relative;
+    width: 3px;
+    height: 10px;
+    overflow: hidden;
+    background: #6e6e6e;
+    color: transparent;
+    animation-name: pulse;
+    animation-duration: 1s;
+    animation-iteration-count: infinite;
+  }
+  .paused.playing .bar {
+    animation-iteration-count: 1;
+  }
+  .paused.playing:after {
+    content: ""
+  }
+  .n1 {
+    animation-delay: 0.5s;
+    margin-right: 3px;
+  }
+  .n2 {
+    animation-delay: 0.2s;
+    margin-right: 3px;
+  }
+  .n3 {
+    animation-delay: 1.2s;
+    margin-right: 3px;
+  }
+  .n4 {
+    animation-delay: 0.9s;
+    margin-right: 3px;
+  }
+  .n5 {
+    animation-delay: 2.3s;
+  }
+  .n6 {
+    animation-delay: 1.3s;
+  }
+  @keyframes pulse {
+    0% {
+      height: 1px;
+      margin-top: 0;
+    }
+    10% {
+      height: 20px;
+      margin-top: -40px;
+    }
+    50% {
+      height: 10px;
+      margin-top: -20px;
+    }
+    60% {
+      height: 15px;
+      margin-top: -30px;
+    }
+    80% {
+      height: 30px;
+      margin-top: -60px;
+    }
+    100% {
+      height: 1px;
+      margin-top: 0;
+    }
+  }
+
+  .music_bg{
+    background-image: linear-gradient( 45deg, black 10%, #00000000 100%);
+  }

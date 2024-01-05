@@ -1,0 +1,6 @@
+User-agent: *
+Disallow: /user
+Disallow: /api
+Allow: /public/
+Crawl-delay: 5
+Noindex: /api

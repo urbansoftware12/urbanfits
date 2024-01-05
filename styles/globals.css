@@ -1,0 +1,532 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: 'Copperplate Gothic 33 BC';
+  font-display: swap;
+  font-weight: normal;
+  font-style: normal;
+  src: url('https://urban-fits.s3.ap-south-1.amazonaws.com/fonts/CopperplateGothicStd-33BC.woff2') format('woff2');
+}
+
+.font_copper {
+  font-family: "Copperplate Gothic 33 BC";
+  font-weight: 400;
+}
+
+.font_cinzel {
+  font-family: 'Cinzel Decorative';
+}
+
+.font_montserrat {
+  font-family: 'Montserrat', sans-serif;
+}
+
+.font_montserrat_bold {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 600;
+}
+
+@media only screen and (min-width: 1000px) {
+  .lg\:font_copper {
+    font-family: 'Copperplate Gothic 33 BC', sans;
+  }
+}
+
+/* Urbanist Font Family */
+.font_urbanist_light {
+  font-weight: 300;
+}
+
+.font_urbanist {
+  font-weight: 400;
+}
+
+.font_urbanist_medium {
+  font-weight: 500;
+}
+
+.font_urbanist_bold {
+  font-weight: 600;
+}
+
+.font_urbanist_extra_bold {
+  font-weight: 700;
+}
+
+* {
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+  tap-highlight-color: rgba(0, 0, 0, 0);
+  /* color: #383838; */
+  scroll-behavior: smooth;
+}
+
+*::selection {
+  background-color: rgb(219, 40, 130);
+  color: #ffff;
+}
+
+select {
+  cursor: pointer;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  #invoice,
+  #invoice * {
+    visibility: visible;
+  }
+
+  #invoice {
+    position: absolute;
+    left: 0;
+    top: 0;
+  }
+}
+
+.bg_metal_gold {
+  /* background for second home carousel */
+  background: linear-gradient(-270deg, rgba(107, 107, 107, 0.2) 0.02%, rgba(179, 144, 62, 0.25) 55.35%);
+}
+
+.bg_btn_gold {
+  background: #FF4A60;
+}
+
+.bg_btn_gold_2 {
+  background: #FF4A60;
+}
+
+.bg_404 {
+  background-image: url("https://urban-fits.s3.ap-south-1.amazonaws.com/website-copyrights/404+Page.png");
+
+}
+
+.gradient_background {
+  background: #FF4A60;
+}
+
+.gradient_txt {
+  font-style: normal;
+  line-height: 50px;
+  background: linear-gradient(90deg, pink 0.1%, #FF4A60 100.1%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-fill-color: transparent;
+}
+
+.gradient_txt_2 {
+  background: linear-gradient(90deg, #FFFFFF 0.1%, #FF4A60 100.1%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-fill-color: transparent;
+}
+
+.data_field:has(input:focus) {
+  border-color: pink;
+}
+
+.marginx_auto {
+  margin: auto;
+}
+
+.card_boxshadow {
+  box-shadow: 0px 7px 15px rgba(0, 0, 0, 0.25);
+
+}
+
+.equillibrium_shadow {
+  box-shadow: 0px 0px 8px 0px rgba(0, 0, 0, 0.25);
+}
+
+/*                                    Google icons setup */
+.material-symbols-outlined {
+  font-variation-settings:
+    'FILL' 0,
+    'wght' 400,
+    'GRAD' 0,
+    'opsz' 48
+}
+
+.i_size {
+  font-variation-settings:
+    'opsz' 40
+}
+
+.fill {
+  font-variation-settings:
+    'FILL' 1
+}
+
+/* Checkbox CSS here */
+input[type="checkbox"] {
+  position: relative;
+  width: 15px;
+  height: 15px;
+  color: #FAE892;
+  border: 1px solid #bdc1c6;
+  border-radius: 4px;
+  appearance: none;
+  outline: 0;
+  cursor: pointer;
+  transition: all 0.5s cubic-bezier(0.1, 0.1, 0.25, 1);
+}
+
+input[type="checkbox"]::before {
+  position: absolute;
+  content: '';
+  display: block;
+  top: 2px;
+  left: 5px;
+  width: 5px;
+  height: 9px;
+  border-style: solid;
+  border-color: #fff;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+  opacity: 0;
+  transition: all 0.5s cubic-bezier(0.1, 0.1, 0.25, 1);
+}
+
+input[type="checkbox"]:checked {
+  color: #fff;
+  background: #FF4A60
+}
+
+input[type="checkbox"]:checked::before {
+  opacity: 1;
+}
+
+input[type="checkbox"]:checked {
+  border: none;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Custom Radio CSS here */
+input[type="radio"] {
+  position: relative;
+  width: 15px;
+  height: 15px;
+  color: pink;
+  border: 1px solid #bdc1c6;
+  appearance: none;
+  outline: 0;
+  cursor: pointer;
+  transition: background 175ms cubic-bezier(0.1, 0.1, 0.25, 1);
+}
+
+input[type="checkbox"]::before {
+  position: absolute;
+  content: '';
+  display: block;
+  top: 2px;
+  left: 5px;
+  width: 5px;
+  height: 9px;
+  border-style: solid;
+  border-color: #fff;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+  opacity: 0;
+}
+
+input[type="radio"]:checked {
+  color: #fff;
+  background: #FF4A60
+}
+
+input[type="radio"]:checked::before {
+  opacity: 1;
+}
+
+input[type="radio"]:checked {
+  border: none;
+}
+
+
+/* gradient border css here */
+.border_gradient span {
+  background: #FF4A60;
+  transition: all .3s;
+  opacity: 0;
+}
+
+.border_gradient:hover span {
+  opacity: 1;
+}
+
+/* Toggle button css */
+.switch {
+  position: relative;
+  display: inline-block;
+  /* width: 46px;
+    height: 25px; */
+}
+
+/* Hide default HTML checkbox */
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: -3px;
+  left: 0;
+  right: 0;
+  bottom: 1px;
+  background-color: #ccc;
+  -webkit-transition: .4s;
+  transition: .4s;
+  border-radius: 34px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 10%;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+  border-radius: 50%;
+}
+
+input:checked+.slider {
+  background: #FF4A60;
+}
+
+input:checked+.slider:before {
+
+  -webkit-transform: translate(-100%, -50%);
+  -ms-transform: translate(-100%, -50%);
+  transform: translate(-100%, -50%);
+  left: 90%;
+
+}
+
+/* Rounded sliders */
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+
+/* hiding element when out of focus */
+.group:not(:focus) .minus_icon {
+  display: none;
+}
+
+.toast{
+  font-family: var(--urbanist) !important;
+}
+
+@media only screen and (max-width: 600px) {
+  .toast {
+    top: 10px !important;
+    left: 10px !important;
+    width: 65% !important;
+    height: 100px !important;
+    font-size: 12px !important;
+  }
+}
+
+/* background for gift selection page */
+.bg_giftbanner {
+  background-image: url(../public/giftbanner.png);
+}
+
+/* custom scroll bar */
+::-webkit-scrollbar {
+  width: 5px;
+  background: transparent;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+  width: 0;
+}
+
+::-webkit-scrollbar-thumb {
+  position: absolute;
+  background: #FF4A60;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar {
+  visibility: hidden;
+}
+
+/*                                     CSS to hide scroll bar */
+
+.hide_scrollbar::-webkit-scrollbar {
+  display: none;
+  -ms-overflow-style: none;
+  scrollbar-width: 0;
+  width: 0;
+  height: 0;
+}
+
+.scrollbar_x::-webkit-scrollbar {
+  height: 5px;
+}
+
+.scrollbar_x::-webkit-scrollbar-thumb {
+  background: #FF4A60;
+}
+
+/* height css for layout accordint to the navbar height in pixels */
+.layout_height {
+  height: calc(100vh - 105px);
+}
+
+.min-h-layout_height {
+  min-height: auto
+}
+
+@media screen and (min-width: 1024px) {
+  .lg_layout_height {
+    height: calc(100vh - 105px);
+  }
+
+  .min-h-layout_height {
+    min-height: calc(100vh - 105px);
+  }
+}
+
+/* CSS for product listing page image sections */
+.bglisting_black {
+  background: linear-gradient(90deg, #000000 0%, #000000 69.37%, #000000 89.11%, rgba(0, 0, 0, 0) 100%);
+}
+
+.bglisting_white {
+  background: linear-gradient(90deg, #F6F8FC 0%, #F6F8FC 44.79%, #F5F7FA 74%, rgba(243, 239, 238, 0) 100%);
+}
+
+@media screen and (max-width: 1000px) {
+  .bglisting_black {
+    background: linear-gradient(90deg, #000000 0%, #000000 69.37%, #000000 74%, rgba(0, 0, 0, 0) 100%);
+  }
+
+  .bglisting_white {
+    background: linear-gradient(90deg, #F6F8FC 0%, #F6F8FC 44.79%, #F5F7FA 74.48%, rgba(243, 239, 238, 0.00) 100%);
+  }
+}
+
+/* css for size giude button */
+.btn_width {
+  width: calc(100vw - 72px);
+}
+
+.border_gradient_2 {
+  border-image: linear-gradient(180deg, pink 0%, #FF4A60 100%) 20;
+}
+
+/* About Page animation */
+@keyframes animateHeading {
+  100% {
+    transform: translateX(-150%);
+  }
+}
+
+@keyframes animBlackBoxHeading {
+  100% {
+    transform: translateX(-200%);
+  }
+}
+
+.animate_loop {
+  animation: animateHeading 10s infinite linear;
+}
+
+.animate_heading {
+  transform-origin: right;
+  animation: animateHeading 8s infinite linear;
+}
+
+.animate_white_heading {
+  transform-origin: left;
+  animation: animateHeading 8s infinite linear reverse;
+}
+
+/* CSS for Customer Services */
+.active_bg {
+  background: #FF4A60;
+}
+
+@media screen and (min-width: 1024px) {
+  .active_bg {
+    background: rgb(243 244 246);
+  }
+}
+
+/* CSS for Category page gradient text */
+.gradient_text {
+  background-image: linear-gradient(180deg, #ffffff 0%, rgba(0, 0, 0, 0));
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+.pinky_gradient_text {
+  background-image: #FF4A60;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+/* CSS for rough gold background */
+.bronze_metal_bg {
+  background: radial-gradient(97.84% 92.24% at 0% -8.66%, #b08d57 0%, rgba(176, 141, 87, 0.00) 100%), linear-gradient(74deg, #8B5A2B 13.43%, #b08d57 26.76%, #b08d57 47.44%, #8B5A2B 53.73%, #8B5A2B 77.78%, #b08d57 86.51%, #8B5A2B 95.7%);
+  background-blend-mode: overlay, normal;
+}
+
+.silver_metal_bg {
+  background: radial-gradient(97.84% 92.24% at 0% -8.66%, #E5E4E2 0%, rgba(229, 228, 226, 0.00) 100%), linear-gradient(74deg, #CDCBC6 13.43%, #E5E4E2 26.76%, #E5E4E2 47.44%, #CDCBC6 53.73%, #CDCBC6 77.78%, #E5E4E2 86.51%, #CDCBC6 95.7%);
+  background-blend-mode: overlay, normal;
+}
+
+.gold_metal_bg {
+  background: radial-gradient(97.84% 92.24% at 0% -8.66%, #FAE892 0%, rgba(250, 232, 146, 0.00) 100%), linear-gradient(74deg, #B3903E 13.43%, #FAE892 26.76%, #FAE892 47.44%, #B3903E 53.73%, #B3903E 77.78%, #FAE892 86.51%, #B3903E 95.7%);
+  background-blend-mode: overlay, normal;
+}
+
+.platinum_metal_bg {
+  background: radial-gradient(97.84% 92.24% at 0% -8.66%, #FFF 0%, rgba(255, 255, 255, 0.00) 100%), linear-gradient(74deg, #576265 13.43%, #9EA1A1 26.76%, #848B8A 47.44%, #576265 53.73%, #576265 77.78%, #757A7B 86.51%, #576265 95.7%);
+  background-blend-mode: overlay, normal;
+}
+
+.saphire_metal_bg {
+  background: radial-gradient(97.84% 92.24% at 0% -8.66%, #082E67 0%, rgba(8, 46, 103, 0.00) 100%), linear-gradient(74deg, #0E54A0 13.43%, #082E67 26.76%, #082E67 47.44%, #0E54A0 53.73%, #0E54A0 77.78%, #082E67 86.51%, #0E54A0 95.7%);
+  background-blend-mode: overlay, normal;
+}
+
+.diamond_metal_bg {
+  background: radial-gradient(97.84% 92.24% at 0% -8.66%, #000000 0%, rgba(0, 0, 0, 0.00) 100%), linear-gradient(74deg, #8A2BE2 13.43%, #000000 26.76%, #000000 47.44%, #8A2BE2 53.73%, #8A2BE2 77.78%, #000000 86.51%, #8A2BE2 95.7%);
+  background-blend-mode: overlay, normal;
+}
+
+.black_glass {
+  background: linear-gradient(45deg, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.3));
+  /* background-blur: 10px; */
+}
