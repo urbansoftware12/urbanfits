@@ -1,19 +1,17 @@
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
 import useUser from './useUser';
 import toaster from "@/utils/toast_function";
 import axios from "axios";
 import jwt from 'jsonwebtoken';
 
-const useNewsletter = create(persist((set) => ({
+const useNewsletter = create((set) => ({
     newsletterData: null,
     getNewsletterData: async () => {
         const { user } = useUser.getState()
         if (!user) return
-
         try {
-            const { data } = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/api/newsletter/get?id=${user._id}`)
-            const decodedData = jwt.decode(data.payload)?._doc
+            const { data } = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/api/newsletter/get`)
+            const decodedData = jwt.decode(data.payload)
             delete decodedData._id;
             delete decodedData.user;
             return set(() => ({ newsletterData: decodedData }))
@@ -24,9 +22,10 @@ const useNewsletter = create(persist((set) => ({
 
     updateNewsletterData: async (valuesObj, sendRequest = true) => {
         const { user } = useUser.getState()
+        if (!user) return
         if (sendRequest) {
             try {
-                const { data } = await axios.put(`${process.env.NEXT_PUBLIC_HOST}/api/newsletter/update?id=${user._id}`, valuesObj)
+                const { data } = await axios.put(`${process.env.NEXT_PUBLIC_HOST}/api/newsletter/update`, valuesObj)
                 toaster("success", data.msg)
                 const decodedData = jwt.decode(data.payload)?._doc
                 delete decodedData._id;
@@ -45,6 +44,5 @@ const useNewsletter = create(persist((set) => ({
         }
     },
     clearNewsletterData: () => set(() => ({ newsletterData: null }))
-
-}), { name: 'user_newsletter_data' }))
+}));
 export default useNewsletter

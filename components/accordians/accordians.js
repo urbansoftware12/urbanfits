@@ -1,4 +1,3 @@
-import React from 'react'
 import Image from 'next/image'
 import truck from '@/public/truck.svg'
 import phone from '@/public/phone.svg'

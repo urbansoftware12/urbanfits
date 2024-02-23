@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import Image from 'next/image'
 import ImgLoader from '../loaders/imgLoader';
 import { Splide, SplideSlide } from '@splidejs/react-splide';

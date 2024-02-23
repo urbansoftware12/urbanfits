@@ -11,4 +11,4 @@ const GuestUserSchema = new mongoose.Schema({
     }
 }, { timestamps: true, strict: false })
 
-module.exports = mongoose.models.GuestUser || mongoose.model("GuestUser", GuestUserSchema)
+export default mongoose.models.GuestUser || mongoose.model("GuestUser", GuestUserSchema)

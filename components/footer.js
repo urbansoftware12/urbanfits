@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import useUser from '@/hooks/useUser'
 import { useRouter } from 'next/router';
 import Link from 'next/link'

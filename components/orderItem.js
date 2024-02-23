@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import useWallet from '@/hooks/useWallet';
 import Invoice from '@/components/modals/invoice'
 import html2canvas from 'html2canvas';

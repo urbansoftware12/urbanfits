@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import dynamic from 'next/dynamic';
 import useProduct from '@/hooks/useProduct';
 const CatalogueCarousel = dynamic(() => import('@/components/carousels/catalogueCarousel'));

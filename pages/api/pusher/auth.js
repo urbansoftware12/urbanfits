@@ -1,11 +1,12 @@
 import { pusherServer } from "@/utils/pusher";
-import CorsMiddleware from "@/utils/cors-config"
+import StandardApi from "@/middlewares/standard_api";
 
-export default async function handler(req, res) {
-    await CorsMiddleware(req, res)
-    const { user_id, email, socket_id, channel_name } = req.body;
+const AuthPusherPresence = async (req, res) => StandardApi(req, res, { method: "POST", verify_user: false }, async () => {
+    const { email, socket_id, channel_name } = req.body;
 
-    const user = {
+    console.log("auth request came to pusher endpoint")
+    const user_id = req.body?.user_id || Date.now()
+    const userData = {
         user_id,
         user_info: {
             user_id,
@@ -13,12 +14,8 @@ export default async function handler(req, res) {
         },
     };
 
-    try {
-        const auth = pusherServer.authenticate(socket_id, channel_name, user);
-        console.log(auth)
-        res.send(auth);
-    } catch (error) {
-        console.error(error)
-        res.status(500).json({ success: false, error, msg: "Internal Server Error occurred. Please retry later." })
-    }
-}
+    const auth = pusherServer.authorizeChannel(socket_id, channel_name, userData);
+    console.log(auth)
+    res.send(auth);
+})
+export default AuthPusherPresence

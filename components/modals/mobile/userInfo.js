@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import Button from '@/components/buttons/simple_btn';
 import Loader from '@/components/loaders/loader';
 import countryCodes from '@/static data/countryCodes';

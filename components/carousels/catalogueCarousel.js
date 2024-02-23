@@ -1,4 +1,3 @@
-import React from 'react'
 import Link from 'next/link';
 import { Splide, SplideTrack, SplideSlide } from '@splidejs/react-splide';
 import '@splidejs/react-splide/css'; // Default theme

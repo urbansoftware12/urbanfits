@@ -1,35 +1,31 @@
-import React, { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/router';
 import { useCart } from "react-use-cart";
-import useUser from '@/hooks/useUser';
-import useAddress from '@/hooks/useAddress';
-import useWallet from '@/hooks/useWallet';
 import { loadStripe } from '@stripe/stripe-js';
-import axios from 'axios';
+import useUser from '@/hooks/useUser';
+import useWallet from '@/hooks/useWallet';
 import AlertPage from '@/components/alertPage'
-import CheckoutCalcSection from '@/components/checkoutCalcSection';
+import DiscountBox, { getCouponDiscount } from '@/components/discountBox';
 import Accordians from '@/components/accordians/accordians';
 import Head from 'next/head';
+import Button from '@/components/buttons/simple_btn';
 import Loader from '@/components/loaders/loader';
+import Image from "next/image"
 import countryCodes from '@/static data/countryCodes';
 import LanguageModal from '@/components/modals/languagemodal';
-import ifExists from '@/utils/if_exists';
 import toaster from '@/utils/toast_function';
-// import CryptoJS from 'crypto-js';
-// imports for Schema and validation
+import axios from 'axios';
 import { useFormik } from 'formik';
 import * as Yup from 'yup'
 import Tooltip from '@/components/tooltip';
-import Button from '@/components/buttons/simple_btn';
 
 loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
 
 export default function Checkout1() {
     const router = useRouter()
-    const { address, getAddress } = useAddress()
-    const { user, guestUser, country } = useUser()
+    const { user, guestUser, country, address, getAddress } = useUser()
     const { points, currency, getShippingRates, formatPrice } = useWallet()
-    const { cartTotal, isEmpty, items } = useCart()
+    const { totalUniqueItems, cartTotal, isEmpty, items } = useCart()
     const [shippingRates, setShippingRates] = useState(null)
     const [langModal, setLangModal] = useState(false)
     const [loader, setLoader] = useState(null)
@@ -60,19 +56,17 @@ export default function Checkout1() {
         phone_prefix: Yup.string().required("Please enter your phone prefix"),
         phone_number: Yup.string().min(9).required("Please enter your phone number")
     }
-    const addressFieldsValues = (type) => {
-        return {
-            address_title: address && address[type] ? address[type].address_title : '',
-            firstname: address && address[type] ? address[type].firstname : '',
-            lastname: address && address[type] ? address[type].lastname : '',
-            address: address && address[type] ? address[type].address : '',
-            apt_suite: address && address[type] ? address[type].apt_suite : '',
-            city: address && address[type] ? address[type].city : '',
-            country: address && address[type] ? address[type].country : country.country,
-            phone_prefix: address && address[type] ? address[type].phone_prefix : country.code,
-            phone_number: address && address[type] ? address[type].phone_number : ''
-        }
-    }
+    const addressFieldsValues = (type) => ({
+        address_title: address && address[type] ? address[type].address_title : '',
+        firstname: address && address[type] ? address[type].firstname : '',
+        lastname: address && address[type] ? address[type].lastname : '',
+        address: address && address[type] ? address[type].address : '',
+        apt_suite: address && address[type] ? address[type].apt_suite : '',
+        city: address && address[type] ? address[type].city : '',
+        country: address && address[type] ? address[type].country : country.country,
+        phone_prefix: address && address[type] ? address[type].phone_prefix : country.code,
+        phone_number: address && address[type] ? address[type].phone_number : ''
+    })
     const { values, errors, touched, handleBlur, handleChange, handleReset, handleSubmit, setValues, setFieldValue, setFieldError } = useFormik({
         initialValues: {
             currency,
@@ -107,7 +101,6 @@ export default function Checkout1() {
                     shipping_info: { ...values, card_number: user?.uf_wallet?.card_number },
                     order_items: items
                 }
-                // const encryptedPayload = CryptoJS.AES.encrypt(JSON.stringify(payload), process.env.NEXT_PUBLIC_SECRET_KEY).toString();
                 const { data } = await axios.post(`${process.env.NEXT_PUBLIC_HOST}/api/payments/checkout_sessions`, { payload })
                 console.log(data)
                 router.push(data.url)
@@ -120,23 +113,21 @@ export default function Checkout1() {
         }
     })
 
-    const getValuesToBeSet = (obj) => {
-        return {
-            address_title: obj ? obj.address_title : '',
-            firstname: obj ? obj.firstname : '',
-            lastname: obj ? obj.lastname : '',
-            address: obj ? obj.address : '',
-            apt_suite: obj ? obj.apt_suite : '',
-            city: obj ? obj.city : '',
-            country: obj ? obj.country : country.country,
-            phone_prefix: obj ? obj.phone_prefix : country.code,
-            phone_number: obj ? obj.phone_number : ''
-        }
-    }
+    const getValuesToBeSet = (obj) => ({
+        address_title: obj ? obj.address_title : '',
+        firstname: obj ? obj.firstname : '',
+        lastname: obj ? obj.lastname : '',
+        address: obj ? obj.address : '',
+        apt_suite: obj ? obj.apt_suite : '',
+        city: obj ? obj.city : '',
+        country: obj ? obj.country : country.country,
+        phone_prefix: obj ? obj.phone_prefix : country.code,
+        phone_number: obj ? obj.phone_number : ''
+    })
 
     const calculateTotalShippingFee = (fees, shippingMethod = values?.delivery_option, coupon) => {
         if (shippingMethod === "free_shipping") return 0;
-        if (coupon && coupon.coupon_config?.free_shipping) return 0;
+        if (values.coupon_code && coupon && coupon.coupon_config?.free_shipping) return 0;
         const filteredItems = items.filter(item => !item.id.startsWith("giftcard_"))
         if (!filteredItems.length) return 0
         const totalWeight = filteredItems.reduce((accValue, item) => { return accValue + (item.weight * item.quantity) }, 0)
@@ -165,16 +156,16 @@ export default function Checkout1() {
     }, [router.query.payment])
 
     useEffect(() => {
-        setFieldValue("currency", currency)
-        setFieldValue("delivery_option", "standard_shipping")
-        setFieldValue("shipping_address.country", country.country)
-        setFieldValue("billing_address.country", country.country)
-        setFieldValue("shipping_address.phone_prefix", country.code)
-        setFieldValue("billing_address.phone_prefix", country.code)
-        const initialAddressSetup = async () => {
+        setFieldValue("currency", currency);
+        setFieldValue("delivery_option", "standard_shipping");
+        setFieldValue("shipping_address.country", country.country);
+        setFieldValue("billing_address.country", country.country);
+        setFieldValue("shipping_address.phone_prefix", country.code);
+        setFieldValue("billing_address.phone_prefix", country.code);
+        (async () => {
             setLoader(<Loader />)
             if (user) {
-                if (!address) await getAddress()
+                if (!address) await getAddress();
                 if (!address) return setLoader(null)
                 setValues({
                     ...values,
@@ -187,31 +178,30 @@ export default function Checkout1() {
                 const { shipping_info } = JSON.parse(filledAddressInfo)
                 setValues({
                     name: shipping_info.name,
-                    email: ifExists(shipping_info.email),
+                    email: shipping_info.email,
                     delivery_option: 'express',
                     shipping_address: getValuesToBeSet(shipping_info.shipping_address),
                     billing_address: getValuesToBeSet(shipping_info.billing_address)
                 })
             }
             setLoader(null)
-        }
-        initialAddressSetup()
+        })()
     }, [user, address])
 
     const toggleBillingForm = (e) => {
-        if (errors.shipping_address) return console.log("complete shipping details first")
+        if (errors.shipping_address) return toaster("error", "Please complete the Shipping Address details.")
         let state = e.target.checked
         if (state) {
             setBillingForm('h-0')
-            return setValues({
+            setValues({
                 ...values, billing_address: getValuesToBeSet(values.shipping_address)
             })
         }
-        if (!state) {
+        else if (!state) {
             setValues({
                 ...values, billing_address: getValuesToBeSet(null)
             })
-            return setBillingForm(null)
+            setBillingForm(null)
         }
     }
 
@@ -224,6 +214,33 @@ export default function Checkout1() {
         else return null
     }
 
+    // Checkout Calculations section logic
+    const [giftCard, setGiftCard] = useState({
+        card: null,
+        code: '',
+        loading: false,
+    })
+    const [coupon, setCoupon] = useState({
+        coupon: null,
+        code: '',
+        loading: false,
+    })
+    const totalUfPoints = items.reduce((total, item) => total + (item?.uf_points || 0), 0)
+    const TotalOrderPrice = cartTotal + calculateTotalShippingFee(shippingRates?.price || 0, values.delivery_option, coupon.coupon) //in AED
+
+    const couponDiscount = getCouponDiscount(coupon.coupon, values.coupon_code, items, cartTotal, user)
+    console.log("calculated Coupon discount: ", couponDiscount)
+
+    const getTotalAmount = (returnDiscount = false) => {
+        const pointsDiscount = parseFloat(values.points_to_use) * process.env.NEXT_PUBLIC_UF_POINT_RATE || 0 //in AED
+        const giftcardDiscount = parseFloat(values.gift_code && giftCard ? giftCard?.price : 0)
+
+        const finalTotalAmount = TotalOrderPrice - (pointsDiscount + giftcardDiscount + couponDiscount)
+        if (returnDiscount) return (100 - (finalTotalAmount / TotalOrderPrice * 100)).toFixed(2)
+        if (TotalOrderPrice !== finalTotalAmount) return <span className='flex gap-x-2'><p className="line-through text-gray-400 text-10px xl:text-sm">{formatPrice(TotalOrderPrice)}</p>&nbsp;{formatPrice(finalTotalAmount)}</span>
+        else return formatPrice(finalTotalAmount)
+    }
+
     if (isEmpty) return <AlertPage type="error" heading="Oh! There's nothing to Checkout with" message="You currently have nothing to checkout in your cart, please visit our store and select something to purchase" />
     if (!isEmpty) return <>
         <Head><title>Checkout - Urban Fits</title></Head>
@@ -232,7 +249,17 @@ export default function Checkout1() {
         <main className='bg-gray-100 w-full h-full px-4 md:px-5 lg:px-10 xl:px-14 2xl:px-20 flex flex-col lg:flex-row lg:flex-wrap p-5 md:p-7 lg:p-0 lg:pt-10 font_urbanist text-left' >
             <div className="w-full mb-2"><span onClick={router.back} className='cursor-pointer font_urbanist_medium'><i className="fa-solid fa-chevron-left text-xs mr-2"></i>Back</span></div>
             <section className="bg-white w-full lg:w-[56%] mb-10 p-4 md:p-5 lg:p-7 mr-auto rounded-2xl">
-                <form className="w-full text-sm" onSubmit={handleSubmit} onReset={handleReset} >
+                <DiscountBox
+                    formatPrice={formatPrice}
+                    values={values}
+                    setFieldValue={setFieldValue}
+                    errors={errors}
+                    giftCard={giftCard}
+                    setGiftCard={setGiftCard}
+                    coupon={coupon}
+                    setCoupon={setCoupon}
+                />
+                <form className="w-full mt-4 lg:mt-6 text-sm" onSubmit={handleSubmit} onReset={handleReset} >
                     <span className=" mb-7 flex justify-between items-center font_urbanist_bold text-xl lg:text-2xl"> <h1>1. Contact Information</h1> <i className="fa-solid fa-circle-check text-base md:text-xl"></i> </span>
                     <span className="flex flex-col mb-6">
                         <label className='font_urbanist_medium md:text-lg' htmlFor="name">Name</label>
@@ -397,19 +424,78 @@ export default function Checkout1() {
                     </div>
                 </form>
             </section>
+            {/* Checkout Calculation Section */}
             <section className="w-full lg:w-[42%] max-w-[850px] flex flex-col gap-y-5">
-                <CheckoutCalcSection
-                    shippingRates={shippingRates}
-                    calculateTotalShippingFee={calculateTotalShippingFee}
-                    selectedShippingOption={values.delivery_option}
-                    values={values}
-                    errors={errors}
-                    touched={touched}
-                    handleBlur={handleBlur}
-                    handleChange={handleChange}
-                    setFieldError={setFieldError}
-                    setFieldValue={setFieldValue}
-                />
+                <section className="bg-white w-full p-4 md:p-5 lg:p-7 flex flex-col items-center rounded-xl">
+                    <h3 className="text-xl md:text-2xl font-bold mb-3">Order Summary ({totalUniqueItems})</h3>
+
+                    <div className="w-full max-h-[25rem] flex flex-col overflow-auto">
+                        {items.map((item, i) => {
+                            if (item.id.startsWith("giftcard_")) return <section className="w-full mb-4 md:mb-6 p-4 border rounded-lg">
+                                <h3 key={-i - 1} className="mb-2 self-start font_urbanist_medium text-sm md:text-base text-left capitalize">{item?.name}</h3>
+                                <div key={i} className="w-full mb-2 flex justify-between xl:items-center">
+                                    <div className={`${item.bg} w-24 h-20 flex justify-center items-center rounded-md md:rounded-lg text-xs text-white font_montserrat_bold tracking-1 uppercase overflow-hidden`}>{item.d_name}</div>
+                                    <aside className="flex-1 flex lg:flex-col xl:flex-row items-start justify-between md:justify-start lg:justify-between ml-4 mid:ml-6 lg:ml-3 gap-x-2 md:gap-x-10 lg:gap-y-2.5 xl:gap-x-4 text-10px md:text-[13px]">
+                                        <div className="w-full lg:my-0 flex flex-col gap-y-2.5">
+                                            <div key={2} className="w-full mx-auto flex justify-between font_urbanist_bold"><span className='font_urbanist_medium text-gray-400'>Price:</span> <span>{formatPrice(item.price)}</span></div>
+                                        </div>
+                                    </aside>
+                                </div>
+                            </section>
+                            return <>
+                                <section className="w-full mb-4 md:mb-6 p-4 border rounded-lg">
+                                    <h3 key={-i - 1} className="mb-2 self-start font_urbanist_medium text-sm md:text-base text-left capitalize">{item?.name}</h3>
+                                    <div key={i} className="w-full mb-2 flex justify-between xl:items-center">
+                                        <div className="w-20 h-20 rounded-md md:rounded-lg overflow-hidden">
+                                            <Image width={640} height={640} src={process.env.NEXT_PUBLIC_BASE_IMG_URL + item.images[0]} alt={item.name} className="w-full h-full object-cover object-top" />
+                                        </div>
+                                        <aside className="flex-1 flex lg:flex-col xl:flex-row items-start justify-between md:justify-start lg:justify-between ml-4 mid:ml-6 lg:ml-3 gap-x-2 md:gap-x-10 lg:gap-y-2.5 xl:gap-x-4 text-10px md:text-[13px]">
+                                            <div className="lg:w-full xl:w-1/2 lg:my-0 flex flex-col gap-y-2.5">
+                                                <div key={1} className="w-full mx-auto flex justify-between font_urbanist_bold capitalize"><span className='font_urbanist_medium text-gray-400'>Color:</span> <span className='truncate'>{item.color}</span></div>
+                                                <div key={2} className="w-full mx-auto flex justify-between font_urbanist_bold"><span className='font_urbanist_medium text-gray-400'>Size:</span> <span>{item.size}</span></div>
+                                                <div key={3} className="w-full mx-auto flex justify-between font_urbanist_bold"><span className='font_urbanist_medium text-gray-400'>Quantity:</span> <span>{item.quantity}</span></div>
+                                            </div>
+                                            <div className="lg:w-full xl:w-1/2 lg:my-0 flex flex-col gap-y-2.5">
+                                                {item.uf_points ? <div key={1} className="w-full mx-auto flex justify-between font_urbanist_bold"><span className='font_urbanist_medium text-red-500'>UF Points:</span> <span>{item.uf_points}</span></div> : null}
+                                                <div key={2} className="w-full mx-auto flex justify-between font_urbanist_bold"><span className='font_urbanist_medium text-gray-400'>Price:</span> <span>{formatPrice(item.price)}</span></div>
+                                                <div key={3} className="w-full mx-auto flex justify-between font_urbanist_bold"><span className='font_urbanist_medium text-gray-400'>Total Price:</span> <span>{formatPrice(item.price * item.quantity)}</span></div>
+                                            </div>
+                                        </aside>
+                                    </div>
+                                </section>
+                            </>
+                        })}
+                    </div>
+                    <div className="w-full h-auto flex flex-col my-5 md:my-3 font_urbanist_bold text-sm md:text-base gap-y-3 md:gap-y-4">
+                        {user && <div className="w-full mx-auto flex justify-between"><span className='font_urbanist text-gray-400'>Card Number</span> <span>xxx-xxxxxxxxxxxxx-{user.uf_wallet.card_number.slice(-4)}</span></div>}
+                        {user && <div className="w-full mx-auto flex justify-between"><span className='font_urbanist text-red-500'>Earned UF-Points</span> <span>{totalUfPoints}</span></div>}
+                        <div className="w-full mx-auto flex justify-between"><span className='font_urbanist text-gray-400'>Subtotal</span> <span>{formatPrice(cartTotal)}</span></div>
+                        <div className="w-full mx-auto flex justify-between"><span className='font_urbanist text-gray-400'>Discount</span> <span>{getTotalAmount(true)}%</span></div>
+                        <div className="w-full mx-auto flex justify-between"><span className='font_urbanist text-gray-400'>Shipping</span> <span>{formatPrice(calculateTotalShippingFee(shippingRates?.price || 0, values.delivery_option, coupon.coupon)) || "We don't ship here"}</span></div>
+                    </div>
+                    {values.points_to_use ? parseFloat(values.points_to_use) > 0 && <div className="w-full py-2 flex justify-between font_urbanist_bold text-base">
+                        <h4>Saved</h4>
+                        <h4>{formatPrice(cartTotal + calculateTotalShippingFee(shippingRates?.price || 0, values.delivery_option, coupon.coupon) - ((cartTotal + calculateTotalShippingFee(shippingRates?.price || 0, values.delivery_option, coupon.coupon)) - parseFloat(values.points_to_use) * process.env.NEXT_PUBLIC_UF_POINT_RATE))}</h4>
+                    </div> : null}
+                    <div className="w-full py-2 flex justify-between font_urbanist_bold text-lg border-t border-t-gray-">
+                        <h4>Total</h4>
+                        <h4>{getTotalAmount()}</h4>
+                    </div>
+                    {user && <div className="w-full mt-4 p-2 border rounded-lg">
+                        <h4 className="mb-3 font_urbanist_bold text-lg">Apply UF-Points</h4>
+                        <span className="w-full flex justify-between items-center">
+                            Your UF Balance: <p>{values.points_to_use && parseFloat(values.points_to_use) > 0 ? <span>{points} - {values.points_to_use} = {points - values.points_to_use}</span> : points} pts</p>
+                        </span>
+                        <div className="w-full relative flex flex-col">
+                            <input name='points_to_use' id='points_to_use' type='number' onChange={(e) => {
+                                const value = parseFloat(e.target.value)
+                                value > points ? setFieldError("points_to_use", "You can't apply more points than your actual balance.") : setFieldValue("points_to_use", value)
+                            }} onBlur={handleChange} value={values.points_to_use} placeholder='Points to use' className={`w-full mt-3 h-11 px-4 py-2.5 border border-gray-300 focus:border-pink-500 hover:border-pink-400 transition rounded-lg outline-none`} />
+                            <p className='absolute text-red-400 bottom-[-19px] left-[10px] text-10px'>{errors && errors.point_to_use}</p>
+                        </div>
+                    </div>}
+
+                </section>
                 <Accordians />
             </section>
         </main>

@@ -1,5 +1,4 @@
-import React, { useState } from 'react'
-// This accordian is for Customer Services pages
+import { useState } from 'react'
 export default function Accordian(props) {
     const [open, setOpen] = useState(false)
     return <div className="p-4 lg:p-6 outline-none accordion-section rounded-xl bg-gray-50 mb-6" tabIndex={1}>

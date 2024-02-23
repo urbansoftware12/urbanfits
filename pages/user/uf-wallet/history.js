@@ -1,15 +1,18 @@
-import React from "react"
+import { useEffect, useState } from "react"
 import Head from "next/head"
 import Link from "next/link"
 import BounceLoader from "@/components/loaders/bounceLoader"
 import User from ".."
 import useUser from "@/hooks/useUser"
 import useWallet from "@/hooks/useWallet"
+import Error403 from "@/pages/403"
+
+const UfPointsNames = { daily_checkin: "Daily Checkin", prize_wheel: "Prize Wheel", signup: "Sign Up", place_order: "Place Order", uf_task: "UF Task", additional_reward: "Other", deduction: "Deduction" }
 
 export default function UFwallet() {
-    const { user } = useUser()
-    const { points, getUfHistory, walletLoading, currency, formatPrice } = useWallet()
-    const [history, setHistory] = React.useState(null)
+    const { user, isLoggedIn } = useUser()
+    const { points, getUfHistory, walletLoading, formatPrice } = useWallet()
+    const [history, setHistory] = useState(null)
 
     const groupHistoryByYearAndMonth = (history) => {
         if (!history) return null
@@ -33,14 +36,20 @@ export default function UFwallet() {
         return groupedRecords;
     };
 
-    const groupedRecords = groupHistoryByYearAndMonth(history)
+    const groupedRecords = groupHistoryByYearAndMonth(history);
+    const expiryText = (expiryDate) => {
+        if (expiryDate) {
+            if (new Date().getTime() < expiryDate.getTime()) return <span className="px-2 py-px bg-green-100 text-green-600 text-[10px] lg:text-xs rounded-3xl">{expiryDate.getDate() + "/" + (expiryDate.getMonth() + 1) + "/" + expiryDate.getFullYear()}</span>;
+            else return <span className="px-2 py-px rounded-3xl bg-gray-200 text-gotham-black text-[10px] lg:text-xs">expired</span>;
+        } else return <i className="fa-solid fa-infinity text-sm text-gotham-black" />
+    }
 
-    React.useEffect(() => {
-        getUfHistory(setHistory)
+    useEffect(() => {
+        getUfHistory((history_docs) => setHistory(history_docs))
     }, [])
 
-    if (!user || !user.email) return <Error403 />
-    if (window.matchMedia('(max-width: 760px)').matches) return <>
+    if (!user && !isLoggedIn()) return <Error403 />
+    else if (user && window.matchMedia('(max-width: 760px)').matches) return <>
         <Head><title>UF Wallet History - Uraban Fits</title></Head>
         <main className='w-screen h-screen bg-white flex flex-col transition-all duration-500'>
             <div className="w-full p-4 border-b border-gray-50 flex justify-between items-center">
@@ -56,21 +65,23 @@ export default function UFwallet() {
                 <section className="w-full mb-4 py-5 text-xs flex justify-between items-center border-y border-gray-50">
                     <div className="w-1/2 flex flex-col">
                         Linked Card number
-                        <span className="font_urbanist_bold text-base text-[#FF4A60]">{user.uf_wallet.card_number}</span>
+                        <span className="font_urbanist_bold text-base text-pinky">{user.uf_wallet.card_number}</span>
                     </div>
                     <div className="w-1/2 flex flex-col">
                         Balance
-                        <span className="font_urbanist_bold text-base text-[#FF4A60]">{points} UF pts ({formatPrice(points * process.env.NEXT_PUBLIC_UF_POINT_RATE)})</span>
+                        <span className="font_urbanist_bold text-base text-pinky">{points} UF pts ({formatPrice(points * process.env.NEXT_PUBLIC_UF_POINT_RATE)})</span>
                     </div>
                 </section>
-                <div className="w-full py-5 flex justify-end text-10px">
-                    <button onClick={() => getUfHistory(setHistory)} disabled={walletLoading} className="px-4 py-1 text-white bg-[#FF4A60] rounded-full">Refresh history&nbsp;&nbsp; <i className={`fa-solid fa-arrows-rotate ${walletLoading && "fa-spin"}`} /></button>
+                <div className="w-full py-5 flex justify-between items-center text-10px">
+                    <h3 className="text-sm font-semibold">Points Transaction History</h3>
+                    <button onClick={() => getUfHistory((history_docs) => setHistory(history_docs))} disabled={walletLoading} className="px-4 py-1 text-white bg-[#FF4A60] rounded-full">Refresh history&nbsp;&nbsp; <i className={`fa-solid fa-rotate-right ${walletLoading && "fa-spin"}`} /></button>
                 </div>
                 <section className="w-full gap-y-4">
-                    <div className="w-full mb-4 flex justify-between items-center text-xs font_urbanist_bold">
-                        <span>Transactions</span>
-                        <span>Points earned</span>
-                        <span>Points used</span>
+                    <div className="w-full mb-4 grid grid-cols-5 place-items-center text-xs font_urbanist_bold">
+                        <span className="place-self-start">Source</span>
+                        <span>Earned</span>
+                        <span>Spent</span>
+                        <span>Epires At</span>
                         <span>Total Balance</span>
                     </div>
                     {walletLoading && <div className="w-full my-5 flex justify-center"><BounceLoader /></div>}
@@ -85,17 +96,22 @@ export default function UFwallet() {
                                 </i>
                             </nav>
                             <nav className="group-focus:max-h-[50vh] max-h-0 rounded overflow-x-hidden overflow-y-auto duration-500">
-                                {recordObj.records.map((record, i) => <section key={i} className=" bg-white border-b border-b-gray-300 grid grid-cols-4 text-xs">
-                                    <div className="w-full flex items-center">
-                                        <span className="py-3 flex flex-col text-xs">
-                                            <h6 className="font_copper text-sm">UF-Points</h6>
-                                            {new Date(record.createdAt).getDate() + "/" + (new Date(record.createdAt).getMonth() + 1) + "/" + new Date(record.createdAt).getFullYear()}
-                                        </span>
-                                    </div>
-                                    <span className="w-full flex justify-center items-center">+{record.earned}</span>
-                                    <span className="w-full flex justify-center items-center">-{record.spent}</span>
-                                    <span className="w-full flex justify-center items-center">{record.balance}</span>
-                                </section>)}
+                                {recordObj.records.map((record, i) => {
+                                    const createdDate = new Date(record.createdAt);
+                                    const expiryDate = record.expiration_date ? new Date(record.expiration_date) : null;
+                                    return <section key={i} className=" bg-white border-b border-b-gray-300 grid grid-cols-5 text-xs">
+                                        <div className="w-full flex items-center">
+                                            <span className="py-3 flex flex-col text-[10px]">
+                                                <h6 className="font_copper text-xs">{UfPointsNames[record.source]}</h6>
+                                                {createdDate.getDate() + "/" + (createdDate.getMonth() + 1) + "/" + createdDate.getFullYear()}
+                                            </span>
+                                        </div>
+                                        <span className="w-full flex justify-center items-center text-green-400">+{record.points}</span>
+                                        <span className="w-full flex justify-center items-center text-red-400">-{record.spent}</span>
+                                        <span className="w-full flex justify-center items-center">{expiryText(expiryDate)}</span>
+                                        <span className="w-full flex justify-center items-center">{record.total_balance}</span>
+                                    </section>
+                                })}
                             </nav>
                         </section>
                     }) : null}
@@ -110,21 +126,23 @@ export default function UFwallet() {
             <section className="mb-7 py-10 flex justify-between items-center border-y border-gray-50">
                 <div className="flex flex-col">
                     Linked Card number
-                    <span className="font_urbanist_bold text-[22px] text-yellow-600">{user.uf_wallet.card_number}</span>
+                    <span className="font_urbanist_bold text-[22px] text-pinky">{user.uf_wallet.card_number}</span>
                 </div>
                 <div className="flex flex-col">
                     Balance
-                    <span className="font_urbanist_bold text-[22px] text-yellow-600">{points} UF pts ({formatPrice(points * process.env.NEXT_PUBLIC_UF_POINT_RATE)})</span>
+                    <span className="font_urbanist_bold text-[22px] text-pinky">{points} UF pts ({formatPrice(points * process.env.NEXT_PUBLIC_UF_POINT_RATE)})</span>
                 </div>
             </section>
-            <div className="w-full py-5 flex justify-end">
-                <button onClick={() => getUfHistory(setHistory)} disabled={walletLoading} className="px-4 py-1 text-xs lg:text-sm text-white bg-black rounded-full">Refresh history&nbsp;&nbsp; <i className={`fa-solid fa-arrows-rotate text-xs ${walletLoading && "fa-spin"}`} /></button>
+            <div className="w-full py-5 flex justify-between items-center">
+                <h3 className="font-semibold">Points Transaction History</h3>
+                <button onClick={() => getUfHistory((history_docs) => setHistory(history_docs))} disabled={walletLoading} className="px-4 py-1 text-xs lg:text-sm text-white bg-pinky rounded-full">Refresh history&nbsp;&nbsp; <i className={`fa-solid fa-rotate-right text-xs ${walletLoading && "fa-spin"}`} /></button>
             </div>
             <section className="w-full gap-y-4">
-                <div className="w-full mb-4 flex justify-between items-center font_urbanist_bold">
-                    <span className="w-1/3">Transactions</span>
-                    <span>Points earned</span>
-                    <span>Points used</span>
+                <div className="w-full mb-4 grid grid-cols-5 place-content-center place-items-center font_urbanist_bold">
+                    <span className="place-self-start">Source</span>
+                    <span>Earned</span>
+                    <span>Spent</span>
+                    <span>Expires At</span>
                     <span>Total Balance</span>
                 </div>
                 {walletLoading && <div className="w-full my-8 flex justify-center"><BounceLoader /></div>}
@@ -139,18 +157,23 @@ export default function UFwallet() {
                             </i>
                         </nav>
                         <nav className="group-focus:max-h-[50vh] max-h-0 rounded overflow-x-hidden overflow-y-auto duration-500">
-                            {recordObj.records.map((record, i) => <section key={i} className=" bg-white border-b border-b-gray-300 grid grid-cols-5 text-sm">
-                                <div className="col-span-2 w-full flex items-center">
-                                    <span className="mr-8 py-4 flex flex-col text-xs">
-                                        <h6 className="font_copper text-sm">UF-Points</h6>
-                                        Urban Fits
-                                    </span>
-                                    {new Date(record.createdAt).getDate() + "/" + (new Date(record.createdAt).getMonth() + 1) + "/" + new Date(record.createdAt).getFullYear()}
-                                </div>
-                                <span className="w-full flex justify-center items-center">+{record.earned}</span>
-                                <span className="w-full flex justify-center items-center">-{record.spent}</span>
-                                <span className="w-full flex justify-center items-center">{record.balance}</span>
-                            </section>)}
+                            {recordObj.records.map((record, i) => {
+                                const createdDate = new Date(record.createdAt);
+                                const expiryDate = record.expiration_date ? new Date(record.expiration_date) : null;
+
+                                return <section key={i} className=" bg-white border-b border-b-gray-300 grid grid-cols-5 text-sm">
+                                    <div className="w-full flex items-center">
+                                        <span className="mr-8 py-4 flex flex-col text-xs">
+                                            <h6 className="font_copper text-sm capitalize">{UfPointsNames[record.source]}</h6>
+                                            {createdDate.getDate() + "/" + (createdDate.getMonth() + 1) + "/" + createdDate.getFullYear()}
+                                        </span>
+                                    </div>
+                                    <span className="w-full flex justify-center items-center text-green-400">+{record.points}</span>
+                                    <span className="w-full flex justify-center items-center text-red-400">-{record.spent}</span>
+                                    <span className="w-full flex justify-center items-center">{expiryText(expiryDate)}</span>
+                                    <span className="w-full flex justify-center items-center">{record.total_balance}</span>
+                                </section>
+                            })}
                         </nav>
                     </section>
                 }) : null}

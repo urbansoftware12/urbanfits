@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react'
-import useUser from '@/hooks/useUser';
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router';
+import useUser from '@/hooks/useUser';
 import Head from 'next/head';
 import Button from '@/components/buttons/simple_btn';
 import Loader from '@/components/loaders/loader';
@@ -13,7 +13,7 @@ import axios from 'axios';
 
 export default function Security() {
     const router = useRouter()
-    const { user, updateUser } = useUser()
+    const { user, isLoggedIn, updateUser } = useUser()
     const [qrUrl, setQrUrl] = useState(null)
     const [qrSecret, setQrSecret] = useState(null)
     const [totp, setTotp] = useState(null)
@@ -23,7 +23,7 @@ export default function Security() {
             if (qrUrl && qrSecret) return
             setLoading(true)
             try {
-                const { data } = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/api/2fa/get-qr-code?user_id=${user._id}`)
+                const { data } = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/api/2fa/get-qr-code`)
                 if (data.qrSecret && data.qrCodeUrl) {
                     setQrUrl(data.qrCodeUrl)
                     setQrSecret(data.qrSecret)
@@ -42,7 +42,6 @@ export default function Security() {
         try {
             if (!totp || totp === '') return toaster("error", "Please enter the TOTP code from Google Authenticator.")
             const { data } = await axios.post(`${process.env.NEXT_PUBLIC_HOST}/api/2fa/create-user-2fa`, {
-                user_id: user._id,
                 qr_secret: qrSecret,
                 totp_code: totp
             })
@@ -56,12 +55,12 @@ export default function Security() {
         setLoading(false)
     }
 
-    if (!user) return <Error403 />
-    if (user.two_fa_activation_date) {
-        router.push('/user/security')
+    if (!user && !isLoggedIn()) return <Error403 />
+    else if (user?.two_fa_activation_date) {
+        router.replace('/user/security');
         return
     }
-    else if (window.matchMedia('(max-width: 760px)').matches) return <>
+    else if (user && window.matchMedia('(max-width: 760px)').matches) return <>
         <Head><title>Register for 2FA - UF</title></Head>
         <main className='w-screen h-screen bg-white flex flex-col transition-all duration-500'>
             <div className="w-full p-4 border-b border-gray-50 flex justify-between items-center">

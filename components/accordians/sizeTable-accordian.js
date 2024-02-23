@@ -1,5 +1,3 @@
-import React, { useState } from 'react'
-// This accordian is for Size Guide tables
 export default function SizeTableAccordian(props) {
     const [open, setOpen] = useState(false)
     const toggleAccordian = () => {

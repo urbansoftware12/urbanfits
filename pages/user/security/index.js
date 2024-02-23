@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import { useState } from 'react'
 import useUser from '@/hooks/useUser';
 import User from '..';
 import Head from 'next/head';
@@ -21,9 +21,8 @@ const Update2FA = ({ user, updateUser, show, setTfaModal, setLoading }) => {
         setLoading(true)
         try {
             const { data } = await axios.put(`${process.env.NEXT_PUBLIC_HOST}/api/2fa/update-user-2fa`, {
-                user_id: user._id,
-                totp_code: totp,
                 password,
+                totp_code: totp,
                 two_fa_enabled: !user.two_fa_enabled
             })
             updateUser({ ...user, two_fa_enabled: !user.two_fa_enabled }, true, true)
@@ -60,13 +59,13 @@ const Update2FA = ({ user, updateUser, show, setTfaModal, setLoading }) => {
 }
 
 export default function Security() {
-    const { user, updateUser } = useUser()
+    const { user, isLoggedIn, updateUser } = useUser();
     const [mfaModal, setMfaModal] = useState(false)
     const [tfaModal, setTfaModal] = useState(false)
     const [loading, setLoading] = useState(false)
 
-    if (!user) return <Error403 />
-    if (window.matchMedia('(max-width: 760px)').matches) return <main className='w-screen h-screen bg-white flex flex-col transition-all duration-500'>
+    if (!user && !isLoggedIn()) return <Error403 />
+    else if (user && window.matchMedia('(max-width: 760px)').matches) return <main className='w-screen h-screen bg-white flex flex-col transition-all duration-500'>
         <Update2FA user={user} updateUser={updateUser} show={tfaModal} setTfaModal={setTfaModal} setLoading={setLoading} />
         <div className="w-full p-4 border-b border-gray-50 flex justify-between items-center">
             <Link href="/user" className='fa-solid fa-chevron-left text-xl'></Link>
@@ -91,8 +90,7 @@ export default function Security() {
     </main>
     else return <>
         <Head><title>Security - UF</title></Head>
-        <User>
-            {loading ? <Loader /> : null}
+        <User loading={loading}>
             {user.two_fa_activation_date ? null : <TwoFa show={mfaModal} setMfaModal={setMfaModal} setLoading={setLoading} />}
             <Update2FA user={user} updateUser={updateUser} show={tfaModal} setTfaModal={setTfaModal} setLoading={setLoading} />
             <h2 className="mt-12 mb-3 text-lg font_urbanist_bold">{user.two_fa_activation_date ? "Enable / Disable 2FA" : "Enable Google Authenticator"}</h2>

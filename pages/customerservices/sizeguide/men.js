@@ -1,4 +1,3 @@
-import React from 'react'
 import CutomerServices from '../index'
 import SizeTableAccordian from '@/components/accordians/sizeTable-accordian'
 import { TableButton, HelpSection } from './women'

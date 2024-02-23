@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react'
+import { useState, useRef } from 'react'
 import Link from 'next/link'
 import AddToShopListModal from '../modals/addtoshoppinglist';
 import { useCart } from "react-use-cart";
@@ -30,14 +30,16 @@ export default function Shoppingcard({ product }, props) {
             variant_id: activeVariant._id,
             id: `${activeVariant._id}${activeVariant.sizes[0].size}`,
             name: product.name,
-            price: product.price,
-            uf_points: product.sale_price || product.uf_points,
+            price: product.sale_price || product.price,
+            sale_price: product.sale_price || 0,
+            uf_points: product.uf_points || 0,
             weight: product.shipping_details.weight,
             stock: activeVariant.stock,
             size: activeVariant.sizes[0].size,
             sizes: activeVariant.sizes,
             color: activeVariant.color_name,
-            images: activeVariant.images
+            images: activeVariant.images,
+            categories: product.categories
         }, 1); toaster('success', "Your item is added to the Cart")
     }
     const addToWishlist = () => {
@@ -85,7 +87,7 @@ export default function Shoppingcard({ product }, props) {
                     </Splide>
                 </Link>
                 <div className="w-full h-[30%] md:h-1/5 text-black flex flex-col">
-                    <Link href={props.link || `/products/product/${product._id}?color=${activeVariant?.color_name}`} className="w-full font_urbanist_medium text-sm lg:text-base">
+                    <Link href={props.link || `/products/product/${product._id}?color=${activeVariant?.color_name}`} className="w-full xl:mt-2 2xl:mt-4 font_urbanist_medium text-sm lg:text-base">
                         <p className="truncate">{product.name}</p>
                     </Link>
                     <div className="w-full flex flex-col lg:flex-row lg:items-center">
@@ -104,8 +106,8 @@ export default function Shoppingcard({ product }, props) {
                             </div>
                                 : <span className='lg:group-hover:-translate-y-full text-[#FF4A60] font_urbanist_bold transition-all duration-300'>{formatPrice(product.price)}</span>}
                             <div className="w-full hidden lg:flex">
-                                {inCart(`${activeVariant._id}${activeVariant.sizes[0].size}`) ? <span className="group-hover:-translate-y-full text-pinky transition-all duration-300 cursor-default">Added <i className="fa-solid fa-check" /></span> : <button onClick={addToCart} className='group-hover:-translate-y-full flex flex-col font_urbanist_medium leading-[1] transition-all duration-300'>+ Add to cart
-                                    <i className='h-px w-0 group-hover:w-full bg-pinky transition-all duration-700' />
+                                {inCart(`${activeVariant._id}${activeVariant.sizes[0].size}`) ? <span className="group-hover:-translate-y-full text-pinky transition-all duration-300 cursor-default">Added <i className="fa-solid fa-check" /></span> : <button onClick={addToCart} className='group-hover:-translate-y-full flex flex-col font_urbanist_medium leading-[1] transition-all duration-300'>
+                                    + Add to cart
                                 </button>}
                             </div>
                         </div>
@@ -207,8 +209,8 @@ export function SmallShoppingcard({ product }, props) {
                             </div>
                                 : <span className='lg:group-hover:-translate-y-full text-[#FF4A60] font_urbanist_bold transition-all duration-300'>{formatPrice(product.price)}</span>}
                             <div className="w-full hidden lg:flex">
-                                {inCart(`${activeVariant._id}${activeVariant.sizes[0].size}`) ? <span className="group-hover:-translate-y-full text-pinky text-xs transition-all duration-300 cursor-default">Added <i className="fa-solid fa-check" /></span> : <button onClick={addToCart} className='group-hover:-translate-y-full flex flex-col font_urbanist_medium leading-[1] transition-all duration-300'>+ Add to cart
-                                    <i className='h-px w-0 group-hover:w-full bg-pinky transition-all duration-700' />
+                                {inCart(`${activeVariant._id}${activeVariant.sizes[0].size}`) ? <span className="group-hover:-translate-y-full text-pinky text-xs transition-all duration-300 cursor-default">Added <i className="fa-solid fa-check" /></span> : <button onClick={addToCart} className='group-hover:-translate-y-full flex flex-col font_urbanist_medium leading-[1] transition-all duration-300'>
+                                    + Add to cart
                                 </button>}
                             </div>
                         </div>

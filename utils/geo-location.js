@@ -28,7 +28,7 @@ const getGeoLocation = async () => {
                 default: break;
             }
         }
-        else return setCountry({ name: "United Arab Emirates", code: "+971", country: "ae", src: "https://urban-fits.s3.eu-north-1.amazonaws.com/country-flags/AE.jpg" })
+        else return setCountry({ name: "United Arab Emirates", code: "+971", country: "ae", src: process.env.NEXT_PUBLIC_BASE_IMG_URL + "/country-flags/AE.webp" })
     } catch (error) { console.log(error) }
 }
 export default getGeoLocation

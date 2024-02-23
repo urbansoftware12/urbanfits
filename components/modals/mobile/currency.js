@@ -1,14 +1,13 @@
-import React from 'react'
 import useWallet from '@/hooks/useWallet'
 
 export default function CurrencySelect({ show, setCurrencyModal }) {
-    const { currency, setCurrency, setCurrency_selected_by_user } = useWallet()
+    const { currency, setCurrency } = useWallet()
 
     const updateCurrency = (event) => {
         const { name } = event.target
         setCurrency(name)
         location.reload()
-        setCurrency_selected_by_user(true)
+        useWallet.setState({ currency_selected_by_user: true })
         toaster("success", <p>Currency udpated to <span className='font_urbanist_bold'>{name}</span>.</p>)
     }
 
@@ -23,11 +22,11 @@ export default function CurrencySelect({ show, setCurrencyModal }) {
                 AED (د.إ)
                 {currency === "AED" && <i name='AED' className="fa-solid fa-check text-black text-lg z-50" />}
             </button>
-            <button onClick={updateCurrency} name='SAR' className="w-full py-4 flex justify-between items-center border-b border-gray-50 font_urbanist text-base">
+            <button disabled name='SAR' className="opacity-40 pointer-events-none w-full py-4 flex justify-between items-center border-b border-gray-50 font_urbanist text-base">
                 SAR (﷼)
                 {currency === "SAR" && <i name='SAR' className="fa-solid fa-check text-black text-lg z-50" />}
             </button>
-            <button onClick={updateCurrency} name='PKR' className="w-full py-4 flex justify-between items-center border-b border-gray-50 font_urbanist text-base">
+            <button disabled name='PKR' className="opacity-40 pointer-events-none w-full py-4 flex justify-between items-center border-b border-gray-50 font_urbanist text-base">
                 PKR (₨)
                 {currency === "PKR" && <i name='PKR' className="fa-solid fa-check text-black text-lg z-50" />}
             </button>

@@ -1,9 +1,6 @@
-import React from 'react'
 import CutomerServices from '../index'
 import SizeTableAccordian from '@/components/accordians/sizeTable-accordian'
 import { TableButton, HelpSection } from './women'
-import LinkBtn from '@/components/buttons/link_btn'
-import Link from 'next/link'
 
 export default function Kids() {
     return (

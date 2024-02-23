@@ -34,4 +34,4 @@ const OTPSchema = new mongoose.Schema({
         default: Date.now()
     }
 }, {strict: false})
-module.exports = mongoose.models.OTP || mongoose.model("OTP", OTPSchema)
+export default mongoose.models.OTP || mongoose.model("OTP", OTPSchema)

@@ -19,4 +19,4 @@ const ShoppingListSchema = new mongoose.Schema({
 
 }, { timestamps: true })
 
-module.exports = mongoose.models.Shoppinglist || mongoose.model("Shoppinglist", ShoppingListSchema)
+export default mongoose.models.Shoppinglist || mongoose.model("Shoppinglist", ShoppingListSchema)

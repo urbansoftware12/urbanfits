@@ -1,6 +1,4 @@
-import React from 'react'
 import SizeGuideCarousel from '@/components/carousels/sizeGuideCarousel'
-// Default theme
 import CustomerServices from '../index'
 import Link from 'next/link'
 import Image from 'next/image'

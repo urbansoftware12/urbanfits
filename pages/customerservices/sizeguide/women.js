@@ -1,4 +1,3 @@
-import React from 'react'
 import CutomerServices from '../index'
 import LinkBtn from '@/components/buttons/link_btn'
 import Link from 'next/link'

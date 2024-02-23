@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import useCategories from '@/hooks/useCategories'
 import useProduct from '@/hooks/useProduct'
 import Shoppingcard from './cards/shoppingcard'

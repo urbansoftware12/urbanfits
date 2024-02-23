@@ -1,15 +1,15 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import DeleteAction from '@/components/modals/deleteAction';
 import RenameShopListModal from '@/components/modals/renameshoppinglist';
 import Shoppingcard from '@/components/cards/shoppingcard';
 import useShoppingList from '@/hooks/useShoppingList';
-import axios from 'axios';
 import Head from 'next/head';
 import mongoose from 'mongoose';
 import Image from 'next/image';
-const emptyWishlist = 'https://urban-fits.s3.eu-north-1.amazonaws.com/website-copyrights/emptyWishlist.jpg';
+import axios from 'axios';
+const emptyWishlist = process.env.NEXT_PUBLIC_BASE_IMG_URL + '/website-copyrights/emptyWishlist.webp';
 
 export default function Product({ shoppinglist }) {
     const { deleteShoppingList, listLoading } = useShoppingList()
@@ -63,7 +63,7 @@ export default function Product({ shoppinglist }) {
     </>
 }
 export async function getServerSideProps(context) {
-    const { list_id } = await context.query
+    const { list_id } = await context.query;
     if (!mongoose.Types.ObjectId.isValid(list_id)) return {
         redirect: {
             destination: '/404',

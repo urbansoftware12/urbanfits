@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import Button from '../buttons/simple_btn'
 import useUser from '@/hooks/useUser';
 import useNewsletter from '@/hooks/useNewsletter';

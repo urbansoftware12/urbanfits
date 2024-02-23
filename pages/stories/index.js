@@ -1,4 +1,3 @@
-import React from 'react'
 import Link from 'next/link'
 import StoryCarousel from '@/components/carousels/storyCarousel'
 import Image from 'next/image'

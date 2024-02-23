@@ -1,35 +1,45 @@
 import ConnectDB from "@/utils/connect_db"
 import User from "@/models/user";
-import mongoose from "mongoose";
-import CorsMiddleware from "@/utils/cors-config"
-import verifyAdminToken from "@/utils/verify_admin";
+import Notification from "@/models/notification";
+import UFpoints from "@/models/ufpoints";
+import { isValidObjectId } from "mongoose";
+import { getDateOfTimezone } from "@/utils/cyphers";
+import StandardApi from "@/middlewares/standard_api";
 
-const getManyUsers = async (req, res) => {
-    try {
-        await CorsMiddleware(req, res)
-        if (req.method === 'GET') {
-            const admin_id = verifyAdminToken(req, res)
-            const { user_to_get } = req.query
-            if (!mongoose.Types.ObjectId(user_to_get)) return res.status(400).json({ success: false, msg: "A valid user id required. Query parameters: user_to_get" })
+const getUserById = async (req, res) => StandardApi(req, res, { verify_admin: true }, async () => {
+    const { user_to_get } = req.query;
+    if (!isValidObjectId(user_to_get)) return res.status(400).json({ success: false, msg: "A valid user id required. Query parameters: user_to_get" })
 
-            await ConnectDB()
-            let admin = await User.findById(admin_id)
-            if (!admin || admin.role !== "administrator") return res.status(400).json({ success: false, msg: "The user with corresponding id must exist and should be administrator to access this data." })
+    await ConnectDB()
+    const userToGet = await User.findById(user_to_get).lean();
+    if (!userToGet) return res.status(404).json({ success: false, msg: "The user with corresponding id does not exist." })
 
-            const userToGet = await User.findById(user_to_get)
-            if (!userToGet) return res.status(404).json({ success: false, msg: "The user with corresponding id does not exist." })
-            delete userToGet.password
+    const userNotifications = await Notification.findOne({ user_id: userToGet._id });
 
-            res.status(200).json({
-                success: true,
-                user: userToGet
-            })
-        }
-        else return res.status(405).json({ success: false, msg: "Method not Allowed, Allowed methods: GET" })
-    }
-    catch (error) {
-        console.log(error)
-        res.status(500).json({ success: false, error, msg: "Internal server error occurred, please try again later." })
-    }
-}
-export default getManyUsers
+    const currentDate = getDateOfTimezone(userToGet.timezone);
+    const pointsDocs = await UFpoints.find({
+        user_id: userToGet._id,
+        card_number: userToGet.uf_wallet.card_number,
+        $or: [
+            { expirationDate: { $exists: false } },
+            { expirationDate: { $gt: currentDate } }
+        ]
+    })
+    const totalPoints = pointsDocs.reduce((prevTotal, currentObj) => prevTotal + currentObj.points, 0)
+
+    const historyDocs = await UFpoints.find({
+        user_id: userToGet._id,
+        card_number: userToGet.uf_wallet.card_number,
+    }).sort({ _id: -1 }).limit(200).lean();
+
+    res.status(200).json({
+        success: true,
+        user: {
+            ...userToGet,
+            notifications: userNotifications || [],
+            uf_balance: totalPoints
+        },
+        points_history: historyDocs
+    })
+})
+export default getUserById

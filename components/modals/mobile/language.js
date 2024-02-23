@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 
 export default function LanguageSelect({ show, setLanguageModal }) {
     const [loader, setLoader] = useState(null)
@@ -15,7 +15,7 @@ export default function LanguageSelect({ show, setLanguageModal }) {
                 English
                 <i name='Male' className="fa-solid fa-check text-black text-lg z-50" />
             </button>
-            <button name='Female' className="w-full py-4 flex justify-between items-center border-b border-gray-50 font_urbanist text-base">
+            <button name='Female' className="opacity-40 w-full py-4 flex justify-between items-center border-b border-gray-50 font_urbanist text-base">
                 العربية
             </button>
         </div>

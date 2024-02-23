@@ -32,4 +32,4 @@ const GiftcardSchema = new mongoose.Schema({
     }
 }, { timestamps: true })
 
-module.exports = mongoose.models.Giftcard || mongoose.model("Giftcard", GiftcardSchema)
+export default mongoose.models?.Giftcard || mongoose.model("Giftcard", GiftcardSchema)

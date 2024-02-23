@@ -1,4 +1,3 @@
-import React from 'react'
 import Image from 'next/image'
 import blackThemeBg from '@/public/listing banners/listingbg1.webp'
 import whiteThemeBg from '@/public/listing banners/listingbg2.webp'

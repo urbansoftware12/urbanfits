@@ -70,4 +70,4 @@ const OrderSessionSchema = new mongoose.Schema({
         }
     }
 }, { strict: false, timestamps: true })
-module.exports = mongoose.models.OrderSession || mongoose.model("OrderSession", OrderSessionSchema)
+export default mongoose.models.OrderSession || mongoose.model("OrderSession", OrderSessionSchema)

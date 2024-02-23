@@ -1,6 +1,5 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import LinkBtn from '@/components/buttons/link_btn';
-import Link from 'next/link';
 import FAQs from '@/static data/faqs';
 import Button from '@/components/buttons/simple_btn';
 

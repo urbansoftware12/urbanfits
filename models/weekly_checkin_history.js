@@ -23,4 +23,4 @@ const WeeklyCheckinPointsHistorySchema = new mongoose.Schema({
 
 WeeklyCheckinPointsHistorySchema.index({ expiration_date: 1 }, { expireAfterSeconds: 0 });
 
-module.exports = mongoose.models.WeeklyCheckinPointsHistory || mongoose.model('WeeklyCheckinPointsHistory', WeeklyCheckinPointsHistorySchema);
+export default mongoose.models.WeeklyCheckinPointsHistory || mongoose.model('WeeklyCheckinPointsHistory', WeeklyCheckinPointsHistorySchema);

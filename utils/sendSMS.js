@@ -1,4 +1,3 @@
-const AWS = require('aws-sdk');
 import { SNSClient } from "@aws-sdk/client-sns";
 import { PublishCommand } from "@aws-sdk/client-sns";
 

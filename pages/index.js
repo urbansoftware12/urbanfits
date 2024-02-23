@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import Head from "next/head";
 import dynamic from "next/dynamic";
 const HomeCarousel = dynamic(() => import('@/components/carousels/homeCarousel'));
 // const HomeCarousel2 = dynamic(() => import('@/components/carousels/homeCarousel2'));
+import SkeletonRow from "@/components/cards/card-skeleton";
 import Link from "next/link";
 import ListingShopSection from "@/components/listingShop_section";
 import OfferCard from "@/components/cards/offerCard";
@@ -10,22 +11,22 @@ import Shoppingcard from "@/components/cards/shoppingcard";
 import axios from "axios";
 
 export default function Home() {
-    const [indexContent, setIndexContent] = useState(null)
+    const [indexContent, setIndexContent] = useState(null);
+    const [indexLoading, setIndexLoading] = useState(true);
 
-    const getIndexContent = async () => {
-        try {
-            const { data } = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/api/get-index-content`);
-            setIndexContent(data);
-        } catch (error) { console.log(error); }
-    }
     useEffect(() => {
-        getIndexContent();
+        (async () => {
+            try {
+                const { data } = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/api/get-index-content`);
+                setIndexContent(data);
+            } catch (error) { console.log(error); } finally { setIndexLoading(false) }
+        })()
         return () => setIndexContent(null)
     }, [])
 
     return <>
         <Head><title>Urban Fits</title></Head>
-        <main className="w-full max-w-[2000px] mx-auto h-full">
+        <main className="w-full">
             <main className='w-full bg-white flex flex-col transition-all gap-y-7 lg:gap-y-10 overflow-hidden' >
                 <section className="w-full layout_height mb-4 flex justify-center items-center transition-all duration-700 ease-linear overflow-hidden">
                     <HomeCarousel />
@@ -38,10 +39,10 @@ export default function Home() {
                             if (window.matchMedia('(max-width: 760px)').matches && index > 3) return
                             if (window.matchMedia('(min-width: 760px) and (max-width: 1024px)').matches && index > 2) return
                             else if (index > 4) return
-                            return <Shoppingcard margin='0' product={product} />
+                            return <Shoppingcard key={"latest_arrivals" + product._id} margin='0' product={product} />
                         })}
                     </div>
-                </section> : null}
+                </section> : (indexLoading && <SkeletonRow />)}
                 {/* Collection Section */}
                 <section>
                     <div className="w-full px-5 md:px-7 lg:px-14 xl:px-20 mb-3 md:mb-5 flex justify-between items-center">
@@ -53,7 +54,7 @@ export default function Home() {
                             if (window.matchMedia('(max-width: 760px)').matches && index > 3) return
                             if (window.matchMedia('(min-width: 760px) and (max-width: 1024px)').matches && index > 2) return
                             else if (index > 4) return
-                            return <Shoppingcard margin='0' product={product} />
+                            return <Shoppingcard key={"new_collection" + product._id} margin='0' product={product} />
                         })}
                     </div>
                 </section>
@@ -76,7 +77,7 @@ export default function Home() {
                             if (window.matchMedia('(max-width: 760px)').matches && index > 3) return
                             if (window.matchMedia('(min-width: 760px) and (max-width: 1024px)').matches && index > 2) return
                             else if (index > 4) return
-                            return <Shoppingcard margin='0' product={product} />
+                            return <Shoppingcard key={"women_collection" + product._id} margin='0' product={product} />
                         })}
                     </div>
                 </section>
@@ -94,10 +95,10 @@ export default function Home() {
                             if (window.matchMedia('(max-width: 760px)').matches && index > 3) return
                             if (window.matchMedia('(min-width: 760px) and (max-width: 1024px)').matches && index > 2) return
                             else if (index > 4) return
-                            return <Shoppingcard margin='0' product={product} />
+                            return <Shoppingcard key={"men_collection" + product._id} margin='0' product={product} />
                         })}
                     </div>
-                </section> : null}
+                </section> : (indexLoading && <SkeletonRow />)}
 
                 {/* Kids Collection Section */}
                 {indexContent?.kidsCollection.length ? <section>
@@ -110,10 +111,10 @@ export default function Home() {
                             if (window.matchMedia('(max-width: 760px)').matches && index > 3) return
                             if (window.matchMedia('(min-width: 760px) and (max-width: 1024px)').matches && index > 2) return
                             else if (index > 4) return
-                            return <Shoppingcard margin='0' product={product} />
+                            return <Shoppingcard key={"kids_collection" + product._id} margin='0' product={product} />
                         })}
                     </div>
-                </section> : null}
+                </section> : (indexLoading && <SkeletonRow />)}
             </main>
             <ListingShopSection classes="mt-7 lg:mt-10" whiteTheme />
         </main>

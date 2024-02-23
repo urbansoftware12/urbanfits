@@ -111,7 +111,7 @@ const newsletter_confirm_template = (username, interests) => {
     <div class="container">
         <div class="logo">
             <!-- Insert your logo here -->
-            <img src="https://urban-fits.s3.eu-north-1.amazonaws.com/website-copyrights/logo_gold_outlined.png"
+            <img src="${process.env.NEXT_PUBLIC_BASE_IMG_URL}/website-copyrights/logo_gold_outlined.webp"
                 alt="Logo">
         </div>
         <h1>Welcome to Our Newsletter!</h1>

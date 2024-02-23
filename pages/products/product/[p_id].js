@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useCart } from "react-use-cart";
 import { useRouter } from 'next/router';
 import useUser from '@/hooks/useUser';
@@ -13,6 +13,8 @@ const ProductCarousel = dynamic(() => import('@/components/carousels/productCaro
 import toaster from '@/utils/toast_function';
 import Button from '@/components/buttons/simple_btn';
 import Link from 'next/link';
+// Share buttons imports
+import { FacebookShareButton, LinkedinShareButton, TwitterShareButton, PinterestShareButton } from 'react-share'
 
 export default function Product(props) {
     const productData = { ...props.resProduct, id: props.resProduct._id }
@@ -79,21 +81,59 @@ export default function Product(props) {
             id: `${product._id}${sizevalue}`,
             category_id: productData.categories[0],
             name: productData.name,
-            price: productData.price,
-            uf_points: product.uf_points,
+            price: productData.sale_price || productData.price,
+            sale_price: productData.sale_price || 0,
+            uf_points: product.uf_points || 0,
             weight: productData.shipping_details.weight,
             stock: product.stock,
             size: sizevalue,
             sizes: product.sizes,
             color: product.color_name,
-            images: product.images
+            images: product.images,
+            categories: productData.categories.map(category => category._id)
         }, quantity);
         toaster('success', 'Your items has been added to the cart')
     }
     return <>
         <Head>
-            <title className='capitalize' >{`${productData.name} - UF`}</title>
+            <title></title>
+            <meta name="description" content="" />
+
+            <meta property="og:url" content="https://ddc0-116-71-168-213.ngrok-free.app" />
+            <meta property="og:type" content="website" />
+            <meta property="og:title" content="" />
+            <meta property="og:description" content="" />
+            <meta property="og:image" content="" />
+
+            <meta name="twitter:card" content="summary_large_image" />
+            <meta property="twitter:domain" content="ddc0-116-71-168-213.ngrok-free.app" />
+            <meta property="twitter:url" content="https://ddc0-116-71-168-213.ngrok-free.app" />
+            <meta name="twitter:title" content="" />
+            <meta name="twitter:description" content="" />
+            <meta name="twitter:image" content="" />
+
+            <title>{productData.name}</title>
+            <link rel="shortcut icon" href={process.env.NEXT_PUBLIC_BASE_IMG_URL + productData.cover_image} />
+            <link rel="apple-touch-icon" href={process.env.NEXT_PUBLIC_BASE_IMG_URL + productData.cover_image} />
+            <link rel="image_src" href={process.env.NEXT_PUBLIC_BASE_IMG_URL + productData.cover_image} />
+            <link rel="canonical" href={process.env.NEXT_PUBLIC_BASE_IMG_URL + productData.cover_image} />
+            <meta property="og:type" content="website" />
+            <meta property="og:url" content={process.env.NEXT_PUBLIC_BASE_IMG_URL + productData.cover_image} />
+            <meta property="og:site_name" content="Urban Fits" />
+            <meta property="og:image" itemprop="image primaryImageOfPage" content={process.env.NEXT_PUBLIC_BASE_IMG_URL + productData.cover_image} />
+            <meta name="twitter:card" content="summary" />
+            <meta name="twitter:domain" content="stackoverflow.com" />
+            <meta name="twitter:title" property="og:title" itemprop="name" content={productData.name} />
+            <meta name="twitter:description" property="og:description" itemprop="description" content={productData.description} />
+            <meta name="facebook:card" content="summary" />
+            <meta name="facebook:domain" content="stackoverflow.com" />
+            <meta name="facebook:title" property="og:title" itemprop="name" content={productData.name} />
+            <meta name="facebook:description" property="og:description" itemprop="description" content={productData.description} />
         </Head>
+        <link itemprop="thumbnailUrl" href={process.env.NEXT_PUBLIC_BASE_IMG_URL + productData.cover_image} />
+        <span itemprop="thumbnail" itemscope itemtype="http://schema.org/ImageObject">
+            <link itemprop="url" href={process.env.NEXT_PUBLIC_BASE_IMG_URL + productData.cover_image} />
+        </span>
         <main className="bg-white w-full max-w-[2000px] mx-auto h-full font_urbanist transition-all duration-700">
             <div className="w-full pb-20 flex justify-center">
                 <section className='w-full p-5 md:p-7 lg:p-0 lg:pt-20 lg:w-[90%] h-full font_urbanist text-left pt-8' >
@@ -135,6 +175,21 @@ export default function Product(props) {
                                     <button onClick={addToCart} className="group hidden lg:flex bg-gold hover:rounded-none max-w-[320px] w-48pr lg:w-1/3 h-9 lg:h-[52px] px-5 justify-between items-center rounded-xl font_urbanist_bold text-white text-sm transition-all duration-300"><p className="group-hover:translate-x-3 transition-all duration-300">Add to Cart </p><i className="fas fa-plus text-white group-hover:rotate-45 transition-all duration-300" /></button>
                                     <Button onClick={addToCart} classes='w-full lg:hidden' my='my-1' bg='bg-gold' fontSize='text-[10px]' text='white' >ADD TO CART | {formatPrice(productData.price)}</Button>
                                 </>}
+                            <h5 className="mt-5 mb-2 text-sm lg:text-base font-semibold text-gray-500">Share on Social Media</h5>
+                            <div className="flex items-center lg:text-lg text-gray-400 gap-x-4">
+                                <FacebookShareButton hashtag='#justsomething' url={router.pathname}>
+                                    <i className="fa-brands fa-facebook" />
+                                </FacebookShareButton>
+                                <LinkedinShareButton url={window.location.href}>
+                                    <i className="fa-brands fa-linkedin-in" />
+                                </LinkedinShareButton>
+                                <TwitterShareButton url={router.asPath}>
+                                    <i className="fa-brands fa-x-twitter" />
+                                </TwitterShareButton>
+                                <PinterestShareButton url={router.asPath}>
+                                    <i className="fa-brands fa-pinterest" />
+                                </PinterestShareButton>
+                            </div>
 
                             {productData.bundle_items && productData.bundle_items.length !== 0 ?
                                 <div className="w-full pt-7 2xl:pt-7 mt-7 2xl:mt-7 lg:border-t">

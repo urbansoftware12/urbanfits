@@ -4,7 +4,9 @@ export default async function PusherWebhooks(req, res) {
     try {
         if (req.method === 'POST') {
             const { events } = req.body;
-            axios.post(`${process.env.NEXT_PUBLIC_HOST}/api/pusher/handle-presence-events`, { events })
+            try {
+                axios.post(`${process.env.NEXT_PUBLIC_HOST}/api/pusher/handle-presence-events`, { events })
+            } catch (e) { console.log(e) }
 
             res.status(200).json({ success: true, message: 'Webhook received successfully' });
         } else res.status(405).json({ message: 'Method not allowed, Allowed Methods: POST' });

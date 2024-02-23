@@ -94,4 +94,4 @@ ProductSchema.pre('save', function (next) {
     next();
 });
 
-module.exports = mongoose.models.Product || mongoose.model("Product", ProductSchema)
+export default mongoose.models.Product || mongoose.model("Product", ProductSchema)

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import BounceLoader from '../loaders/bounceLoader';
 import useShoppingList from '@/hooks/useShoppingList';
 import Link from 'next/link';

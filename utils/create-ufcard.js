@@ -1,5 +1,5 @@
 import User from "@/models/user"
-import { generateRandomInt } from "./generatePassword"
+import { generateRandomInt } from "./cyphers.js"
 import uploadImage from "./uploadImage";
 import bwipjs from 'bwip-js';
 
@@ -20,7 +20,7 @@ const createUFcard = async () => {
             text: cardNumber,
             scale: 4,
         })
-        const barCodeUrl = await uploadImage(barCode, cardNumber, "uf-wallet-barcodes")
+        const barCodeUrl = await uploadImage(barCode, `uf-wallet-barcodes/${cardNumber}`)
         return {
             card_number: cardNumber,
             bar_code: barCodeUrl

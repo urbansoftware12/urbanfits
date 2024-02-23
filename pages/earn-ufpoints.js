@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image';
 import useUser from '@/hooks/useUser'
@@ -7,8 +7,11 @@ import Button from '@/components/buttons/simple_btn'
 import BounceLoader from '@/components/loaders/bounceLoader'
 import toaster from '@/utils/toast_function'
 import LinkBtn from '@/components/buttons/link_btn'
+import { DefaultTasks } from '@/uf.config';
 const emptyWishlist = process.env.NEXT_PUBLIC_BASE_IMG_URL + '/website-copyrights/emptyWishlist.webp';
+import axios from "axios";
 
+const UfPointsNames = { daily_checkin: "Daily Checkin", prize_wheel: "Prize Wheel", signup: "Sign Up", place_order: "Place Order", uf_task: "UF Task", additional_reward: "Other", deduction: "Deduction" };
 const CheckShell = ({ dayCode, day, history }) => {
     const today = new Date();
     const currentWeekStart = new Date(today);
@@ -35,16 +38,58 @@ const CheckShell = ({ dayCode, day, history }) => {
     </div>
 }
 
+const TaskComp = ({ user, task, uploadUfTaskImg, setTasks }) => {
+    const { name, type, title, description, link, need_image, image_submitted, completed } = task
+    const disableAction = user && name == "sign_up" ? true : (!user && name !== "sign_up" ? true : false)
+    const [ssLoading, setSsLoading] = useState(false)
+
+    const onUploadSS = async (e) => {
+        const { name } = e.target;
+        const file = e.target.files[0];
+        setSsLoading(true)
+        if (file) uploadUfTaskImg(name, file, (data) => { setTasks(data.tasks.tasks); setSsLoading(false) })
+        else toaster("info", "Please upload a valid image.")
+    }
+    const actionBtnValue = name !== "sign_up" ? <i className="fa-solid fa-lock text-gotham-black mx-1.5 text-sm" /> : "Go"
+
+    if (user?._id) return <div key={name} className="w-full border rounded-lg flex justify-between items-center px-4 py-2">
+        <div className="flex flex-col text-sm lg:text-base text-gray-400">
+            <h6 className="font_urbanist_bold text-black">{title}</h6>
+            {description}
+        </div>
+        {image_submitted && !completed ? <span title='approval pending...' className='p-2 px-3 bg-pinky text-white text-sm lg:text-base rounded-md'><i className="fa-regular fa-clock" /></span> :
+            <div disabled={disableAction || ssLoading} className={`${disableAction || ssLoading && "opacity-60 pointer-events-none"} flex items-center gap-2 md:gap-3`}>
+                {need_image && !completed ? <label htmlFor={name} title='Upload Screen Shot' className="px-3 py-2 text-xs lg:text-sm text-gotham-black bg-gray-100 rounded-md cursor-pointer">
+                    {ssLoading ? <span className='inline-block w-5 aspect-square border-r-2 border-gotham-black rounded-3xl animate-spin' /> : <i className="fa-solid fa-upload" />}
+                    <input onChange={onUploadSS} className='appearance-none hidden' type="file" accept="image/*" name={name} id={name} />
+                </label> : null}
+                <span className={`p-2 ${completed || name == "sign_up" ? "bg-gold-land text-white" : "bg-gray-100 text-black"} text-sm lg:text-base rounded-md`}>
+                    {completed || name === "sign_up" ? <i title='completed' className="fa-solid fa-check mx-1.5 text-sm" /> : <Link target={type == "social" ? "_blank" : ''} href={link || '#'}>Go</Link>}
+                </span>
+            </div>}
+    </div>
+    else return <div key={name} className="w-full border rounded-lg flex justify-between items-center px-4 py-2">
+        <div className="flex flex-col text-sm lg:text-base text-gray-400">
+            <h6 className="font_urbanist_bold text-black">{title}</h6>
+            {description}
+        </div>
+        <span className={`px-3 py-2 ${name == "sign_up" ? "bg-gold-land text-white" : "bg-gray-100 text-black"} text-sm lg:text-base rounded-md`}>
+            {name == "sign_up" ? <Link target="_blank" href={link}>
+                {actionBtnValue}
+            </Link> : <i className="fa-solid fa-lock text-sm text-gray-700 mx-0.5" />}
+        </span>
+    </div>
+}
+
 export default function EarnUfPoints() {
-    const { points, formatPrice, walletLoading, getWeeklyCheckinHistory, spinUfWheel, getUfBalance, getUfHistory, getWheelHistory } = useWallet()
-    const { user, updateUser } = useUser()
+    const { points, formatPrice, walletLoading, getWeeklyCheckinHistory, spinUfWheel, getUfBalance, getUfTasks, getUfHistory, uploadUfTaskImg } = useWallet()
+    const { user, isLoggedIn } = useUser()
     const [weeklyHistory, setWeeklyHistory] = useState()
     const [loading, setLoading] = useState(false)
-    const [history, setHistory] = useState(null)
-    const [wheelhistory, setWheelHistory] = useState([])
+    const [history, setHistory] = useState([])
+    const [tasks, setTasks] = useState(DefaultTasks)
 
-    function spinAndStopAtValue(value, msg) {
-        // console.log(typeof value, value)
+    async function spinAndStopAtValue(value, msg) {
         const pathElements = {
             "50": document.querySelector('path[name="50"]'),
             "100": document.querySelector('path[name="100"]'),
@@ -75,19 +120,20 @@ export default function EarnUfPoints() {
             wheel.style.transition = `transform ${spinDuration * spins}s cubic-bezier(0.5,0.25,0,1)`;
             wheel.style.transform = `rotate(${totalRotation}deg)`;
 
-            setTimeout(() => {
-                wheel.style.transition = 'none';
-                wheel.style.transform = `rotate(${rotationAngle}deg)`;
-                toaster("success", msg || `Congratulations! You won ${value} points.`)
-            }, spinDuration * spins * 1000);
+            await new Promise((res, rej) => {
+                setTimeout(() => {
+                    wheel.style.transition = 'none';
+                    wheel.style.transform = `rotate(${rotationAngle}deg)`;
+                    toaster("success", msg || `Congratulations! You won ${value} points.`)
+                }, spinDuration * spins * 1000);
+                res(1)
+            })
         } else {
             console.log("Invalid value. No corresponding path found.");
         }
     }
 
     const calculateTimeLeft = (targetDate) => {
-        // const targetDate = new Date(new Date(new Date().setDate(new Date().getDate() + (7 - new Date().getDay()))).setHours(0, 0, 0))
-        // const targetDate = user.uf_wallet.next_uf_spin
         if (!user || !user.uf_wallet.next_uf_spin) return { days: 0, hours: 0, minutes: 0, seconds: 0 }
         const now = new Date().getTime();
         const targetTime = new Date(targetDate).getTime();
@@ -126,18 +172,20 @@ export default function EarnUfPoints() {
 
     useEffect(() => {
         if (!user) { return }
-        getWeeklyCheckinHistory(setWeeklyHistory)
+        (async () => {
+            await getWeeklyCheckinHistory(setWeeklyHistory)
+            await getUfTasks((data) => setTasks(data.tasks.tasks))
+            getUfHistory((history_docs) => setHistory(history_docs), 5);
+        })()
         const timer = setInterval(() => {
             setTimeLeft(calculateTimeLeft(user.uf_wallet.next_uf_spin));
         }, 1000);
-        getUfHistory(setHistory);
-        getWheelHistory((history) => setWheelHistory(history))
 
         return () => {
             clearInterval(timer)
-            setWheelHistory([])
+            setHistory([])
         };
-    }, []);
+    }, [user]);
 
     const spinPrizeWheel = async () => {
         setLoading(true)
@@ -146,13 +194,13 @@ export default function EarnUfPoints() {
             setLoading(false)
             return console.log("some error occured as the spin value was undefined.")
         }
-        spinAndStopAtValue(data.reward.toString(), data?.msg)
+        await spinAndStopAtValue(data.reward.toString(), data?.msg)
         setLoading(false)
         getUfBalance()
     }
 
     return <>
-        <main className="bg-gray-100 w-full max-w-[2000px] mx-auto p-5 md:px-7 lg:px-14 xl:px-20 py-16 font_urbanist gap-4 lg:gap-6 scroll-smooth">
+        <main className="bg-gray-100 w-full p-5 md:px-7 lg:px-14 xl:px-20 py-16 font_urbanist gap-4 lg:gap-6 scroll-smooth">
             <section className="w-full mb-4 flex flex-col lg:flex-row gap-4">
                 <nav className="bg-white w-full lg:w-1/2 min-h-[20rem] px-4 py-4 mid:px-20 mid:py-4 lg:p-6 lg:px-8 flex flex-col justify-between rounded-lg">
                     <section className="w-full">
@@ -232,7 +280,7 @@ export default function EarnUfPoints() {
                             <li>5. Your UF-Points and vouchers will be automatically added yo your account wallet.</li>
                             <li>6. On getting a "Try Again", you can do extra spin free of cost.</li>
                         </ol>
-                        {user ? <div className='w-full'><LinkBtn href="#prize_wheel_history" bg="bg-gray-100" my="my-3" text="black" classes="w-full" font='font_urbanist_medium'>My Prize History</LinkBtn>
+                        {user ? <div className='w-full'><LinkBtn href="/user/uf-wallet/history" bg="bg-gray-100" my="my-3" text="black" classes="w-full" font='font_urbanist_medium'>My Prize History</LinkBtn>
                             <Button loading={loading} disabled={user?.uf_wallet.last_spin_reward && new Date() < new Date(user.uf_wallet?.next_uf_spin)} onClick={spinPrizeWheel} classes="w-full" my="0">{user.uf_wallet?.last_spin_reward ? "Lucky Draw (-10 pts)" : "Free Lucky Draw"}</Button></div>
                             : <>
                                 <LinkBtn href="/auth/login" bg="bg-gray-100" my="my-3" text="black" classes="w-full" font='font_urbanist_medium'>Log in</LinkBtn>
@@ -245,77 +293,53 @@ export default function EarnUfPoints() {
 
             <section className="bg-white w-full mb-4 px-4 py-6 mid:px-6 mid:p-6 lg:py-10 lg:px-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 rounded-lg gap-4">
                 <h1 className="col-span-full mb-6 font_urbanist_bold text-lg md:text-xl lg:text-[26px]">Complete tasks to win more UF-Points</h1>
-                <div className="w-full border rounded-lg flex justify-between items-center px-4 py-2">
-                    <span className="flex flex-col text-sm lg:text-base text-gray-400">
-                        <h6 className="font_urbanist_bold text-black">Sign Up</h6>
-                        Signup and win 500 points
-                    </span>
-                    <Link href="/auth/signup" disabled={user} className={`${user && "opacity-60 pointer-events-none"} p-2 bg-gold-land text-white text-sm lg:text-base rounded-md`}>{!user ? "Go" : <i className="fa-solid fa-check mx-1.5 text-sm" />}</Link>
-                </div>
-                <div className="w-full border rounded-lg flex justify-between items-center px-4 py-2">
-                    <span className="flex flex-col text-sm lg:text-base text-gray-400">
-                        <h6 className="font_urbanist_bold text-black">Follow us on Facebook</h6>
-                        Follow and win 100 points
-                    </span>
-                    <Link href="https://facebook.com" disabled={!user} className={`${!user && "opacity-60 pointer-events-none"} p-2 bg-gray-100 text-sm lg:text-base rounded-md`}>{user ? "Go" : <i className="fa-solid fa-lock mx-1.5 text-sm" />}</Link>
-                </div>
-                <div className="w-full border rounded-lg flex justify-between items-center px-4 py-2">
-                    <span className="flex flex-col text-sm lg:text-base text-gray-400">
-                        <h6 className="font_urbanist_bold text-black">Follow us on Instagram</h6>
-                        Follow and win 100 points
-                    </span>
-                    <Link href="https://instagram.com" disabled={!user} className={`${!user && "opacity-60 pointer-events-none"} p-2 bg-gray-100 text-sm lg:text-base rounded-md`}>{user ? "Go" : <i className="fa-solid fa-lock mx-1.5 text-sm" />}</Link>
-                </div>
-                <div className="w-full border rounded-lg flex justify-between items-center px-4 py-2">
-                    <span className="flex flex-col text-sm lg:text-base text-gray-400">
-                        <h6 className="font_urbanist_bold text-black">Place an Order</h6>
-                        Win upto 350 points
-                    </span>
-                    <Link href="/" disabled={!user} className={`${!user && "opacity-60 pointer-events-none"} p-2 bg-gray-100 text-sm lg:text-base rounded-md`}>{user ? "Go" : <i className="fa-solid fa-lock mx-1.5 text-sm" />}</Link>
-                </div>
-                <div className="w-full border rounded-lg flex justify-between items-center px-4 py-2">
-                    <span className="flex flex-col text-sm lg:text-base text-gray-400">
-                        <h6 className="font_urbanist_bold text-black">Review a product</h6>
-                        Win 200 points
-                    </span>
-                    <Link href="/" disabled={!user} className={`${!user && "opacity-60 pointer-events-none"} p-2 bg-gray-100 text-sm lg:text-base rounded-md`}>{user ? "Go" : <i className="fa-solid fa-lock mx-1.5 text-sm" />}</Link>
-                </div>
-                <div className="w-full border rounded-lg flex justify-between items-center px-4 py-2">
-                    <span className="flex flex-col text-sm lg:text-base text-gray-400">
-                        <h6 className="font_urbanist_bold text-black">Enable 2FA</h6>
-                        Win 100 points
-                    </span>
-                    <Link href="/user/security" disabled={!user} className={`${!user && "opacity-60 pointer-events-none"} p-2 bg-gray-100 text-sm lg:text-base rounded-md`}>{user ? "Go" : <i className="fa-solid fa-lock mx-1.5 text-sm" />}</Link>
-                </div>
+                {tasks.map(task => <TaskComp user={user} uploadUfTaskImg={uploadUfTaskImg} task={task} setTasks={setTasks} />)}
             </section>
-            {user?.email && <section id='prize_wheel_history' className="bg-white w-full mb-4 px-4 py-6 mid:p-6 lg:p-10 lg:px-8 rounded-lg gap-4 overflow-x-auto scrollbar_x">
-                <h2 id='points_history' className="col-span-full mb-6 font_urbanist_bold text-lg md:text-xl lg:text-[26px]">Points History</h2>
+            <section id='prize_wheel_history' className="bg-white w-full mb-4 px-4 py-6 mid:p-6 lg:p-10 lg:px-8 rounded-lg gap-4 overflow-x-auto scrollbar_x">
+                <div className="w-full mb-6 flex justify-between items-center">
+                    <h2 id='points_history' className="col-span-full font_urbanist_bold text-lg md:text-xl lg:text-[26px]">Points History</h2>
+                    {isLoggedIn() ? <div className="flex gap-x-2">
+                        <Link href="/user/uf-wallet/history" className="px-2 lg:px-4 py-0.5 lg:py-1 text-xs lg:text-sm text-gotham-black bg-gray-100 rounded-full">View full history</Link>
+                        <button onClick={() => getUfHistory((history_docs) => setHistory(history_docs), 5)} disabled={walletLoading} className="px-2 lg:px-4 py-0.5 lg:py-1 text-[10px] md:text-xs lg:text-sm text-white bg-pinky rounded-full">Refresh history&nbsp;&nbsp; <i className={`fa-solid fa-rotate-right text-xs ${walletLoading && "fa-spin"}`} /></button>
+                    </div> : null}
+                </div>
                 {walletLoading && <div className="w-full my-8 flex justify-center"><BounceLoader /></div>}
-                {wheelhistory?.length ? <div className="w-[150%] md:w-full mb-4 grid grid-cols-5 text-xs lg:text-base font_urbanist_bold">
-                    <span className="col-span-2">Last 5 Transactions</span>
-                    <span>Points earned</span>
-                    <span>Costs</span>
+                {history?.length ? <div className="w-full mb-4 grid grid-cols-5 place-items-center text-[10px] md:text-xs lg:text-base font_urbanist_bold">
+                    <span className="place-self-start hidden lg:inline">Last 5 Transactions</span>
+                    <span className="place-self-start md:hidden">Last 5</span>
+                    <span>Earned</span>
+                    <span>Spent</span>
+                    <span>Expires At</span>
                     <span>Total Balance</span>
                 </div> : null}
 
-                {wheelhistory?.length ? wheelhistory.map((history, index) => {
-                    const startDate = new Date(history.createdAt)
-                    const endDate = new Date(history.expiration_date)
-                    return <div key={index} className={`${wheelhistory.length ? "w-[150%]" : "w-full"} md:w-full grid grid-cols-5 py-3 border-b text-xs lg:text-base`}>
-                        <div className="col-span-2 flex flex-col">
-                            <span className="text-sm lg:text-base font-semibold">Lucky Wheel Prize</span>
-                            <p className="text-[8px] md:text-[10px] lg:text-xs text-gray-400">Validity: {startDate.getDate() + "-" + (startDate.getMonth() + 1) + "-" + startDate.getFullYear()} {startDate.getHours() + ":" + startDate.getMinutes()} to {endDate.getDate() + "-" + (endDate.getMonth() + 1) + "-" + endDate.getFullYear()} {endDate.getHours() + ":" + endDate.getMinutes()}</p>
+                {user?.email && history?.length ? history.map((record, index) => {
+                    const createdDate = new Date(record.createdAt);
+                    const expiryDate = record.expiration_date ? new Date(record.expiration_date) : null;
+                    const expiryText = () => {
+                        if (expiryDate) {
+                            if (new Date().getTime() < expiryDate.getTime()) return <span className="px-2 py-px bg-green-100 text-green-600 text-[8px] lg:text-xs rounded-3xl">{expiryDate.getDate() + "/" + (expiryDate.getMonth() + 1) + "/" + expiryDate.getFullYear()}</span>;
+                            else return <span className="px-2 py-px rounded-3xl bg-gray-200 text-gotham-black text-[8px] lg:text-xs">expired</span>;
+                        } else return <i className="fa-solid fa-infinity text-xs lg:text-sm text-gotham-black" />
+                    }
+                    return <section key={index} className="bg-white border-b border-b-gray-300 grid grid-cols-5 text-[10px] md:text-sm">
+                        <div className="w-full flex items-center">
+                            <span className="mr-8 py-4 flex flex-col text-[8px] lg:text-xs">
+                                <h6 className="font_copper uppercase text-xs lg:text-sm">{UfPointsNames[record.source]}</h6>
+                                {createdDate.getDate() + "/" + (createdDate.getMonth() + 1) + "/" + createdDate.getFullYear()}
+                            </span>
                         </div>
-                        <span className='text-green-400'>+ {history.points}</span>
-                        <span className='text-red-400'>-10</span>
-                        <span>{history.balance}</span>
-                    </div>
+                        <span className="w-full flex justify-center items-center text-green-400">+{record.points}</span>
+                        <span className="w-full flex justify-center items-center text-red-400">-{record.spent}</span>
+                        <span className="w-full flex justify-center items-center">{expiryText()}</span>
+                        <span className="w-full flex justify-center items-center">{record.total_balance}</span>
+                    </section>
                 }) : <div id='prize_wheel_history' className='w-full h-[50vh] col-span-full flex flex-col items-center justify-center gap-4 text-xs lg:text-sm font-semibold'>
                     <Image width={200} height={200} className="w-1/5 lg:w-1/6" src={emptyWishlist} alt="Empty Transaction" />
                     No Transation history found
                 </div>}
-
-            </section>}<section className="bg-white w-full mb-4 lg:mb-6 px-4 py-6 mid:p-6 lg:py-10 lg:px-8 rounded-lg">
+            </section>
+            <section className="bg-white w-full mb-4 lg:mb-6 px-4 py-6 mid:p-6 lg:py-10 lg:px-8 rounded-lg">
                 <h4 className="col-span-full mb-4 font_urbanist_bold text-lg md:text-xl lg:text-[26px]">Rules for Check-in</h4>
                 <ol>
                     <li>1. Sign in on the “Urban Fits” page on the website every day to receive UF-Points, the UF-Points accumulates over the week and automatically expires each Sunday at 24:00. You can check your UF-Points expiration date in “My Account”. Remember to use your UF-Points before it expires!</li>

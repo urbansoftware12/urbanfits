@@ -1,16 +1,16 @@
-import React from 'react'
+import { useEffect } from 'react'
 import NotificationInbox from '.'
 import useUser from '@/hooks/useUser'
 import { updateNotificationStatus } from '.'
 
 export default function Orders() {
-    const { user, notifications, setNotification } = useUser()
+    const { notifications } = useUser()
     const filteredNotifics = notifications.filter(notific => notific.category === "order")
     const otherNotifics = notifications.filter(notific => notific.category !== "order")
-    React.useEffect(() => {
+    useEffect(() => {
+        if (filteredNotifics.some(notific => !notific.seen)) updateNotificationStatus("order")
         const newNotifications = [...otherNotifics, ...filteredNotifics.map(notific => ({ ...notific, seen: true }))]
-        setNotification(newNotifications)
-        if (filteredNotifics.some(notific => !notific.seen)) updateNotificationStatus(user._id, "order")
+        useUser.setState({ notifications: newNotifications })
     }, [])
     return <NotificationInbox noNotifications={filteredNotifics.length ? false : true} filteredNotifics={filteredNotifics} />
 }

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import Loader from '@/components/loaders/loader'
 
 export default function GenderSelect({ user, updateUser, show, setGenderModal }) {

@@ -17,7 +17,7 @@ const OrderConfirmed = (username) => {
         style="max-width:37.5em;margin:0 auto;padding:20px 0 48px">
         <tr style="width:100%">
             <td><img alt="Urban Fits"
-                    src="https://urban-fits.s3.eu-north-1.amazonaws.com/website-copyrights/logo_gold_outlined.png"
+                    src="${process.env.NEXT_PUBLIC_BASE_IMG_URL}/website-copyrights/logo_gold_outlined.webp"
                     width="100"
                     style="display:block;outline:none;border:none;text-decoration:none;margin:0 auto;margin-top:7rem" />
                 <p style="font-size:16px;line-height:26px;margin:16px 0">Dear ${username || "User"},</p>

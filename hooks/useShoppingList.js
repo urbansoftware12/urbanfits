@@ -17,8 +17,7 @@ const useShoppingList = create((set) => ({
         } catch (error) {
             console.log(error)
             if (error.response) toaster("error", error.response.data.msg)
-        }
-        set(() => ({ listLoading: false }))
+        } finally { set(() => ({ listLoading: false })) }
     },
 
     createShoppingList: async (listname) => {
@@ -33,8 +32,7 @@ const useShoppingList = create((set) => ({
         } catch (error) {
             console.log(error)
             if (error.response) toaster("error", error.response.data.msg)
-        }
-        set(() => ({ listLoading: false }))
+        } finally { set(() => ({ listLoading: false })) }
     },
 
     renameShoppingList: async (list_id, listname) => {
@@ -49,8 +47,7 @@ const useShoppingList = create((set) => ({
         } catch (error) {
             console.log(error)
             if (error.response) toaster("error", error.response.data.msg)
-        }
-        set(() => ({ listLoading: false }))
+        } finally { set(() => ({ listLoading: false })) }
     },
 
     deleteShoppingList: async (list_id) => {
@@ -65,8 +62,7 @@ const useShoppingList = create((set) => ({
         } catch (error) {
             console.log(error)
             if (error.response) toaster("error", error.response.data.msg)
-        }
-        set(() => ({ listLoading: false }))
+        } finally { set(() => ({ listLoading: false })) }
     },
 
     addToShoppingList: async (list_id, product_id) => {
@@ -86,8 +82,7 @@ const useShoppingList = create((set) => ({
         } catch (error) {
             console.log(error)
             if (error.response) toaster("error", error.response.data.msg)
-        }
-        set(() => ({ listLoading: false }))
+        } finally { set(() => ({ listLoading: false })) }
     },
 
     removeFromShoppingList: async (list_id, product_id) => {
@@ -107,8 +102,7 @@ const useShoppingList = create((set) => ({
         } catch (error) {
             console.log(error)
             if (error.response) toaster("error", error.response.data.msg)
-        }
-        set(() => ({ listLoading: false }))
-    },
+        } finally { set(() => ({ listLoading: false })) }
+    }
 }))
 export default useShoppingList

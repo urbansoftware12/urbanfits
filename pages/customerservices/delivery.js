@@ -1,4 +1,3 @@
-import React from 'react'
 import CustomerServices from './index'
 import Link from 'next/link'
 

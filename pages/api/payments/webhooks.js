@@ -52,7 +52,7 @@ const webhookHandler = async (req, res) => {
                 const orderSession = await OrderSession.findById(paymentIntent.metadata.order_session_id)
 
                 console.log(`❌ Payment failed: ${paymentIntent.last_payment_error?.message}`);
-                pusherServer.trigger(`payments-user_${orderSession.user_id.toString()}`, 'payment-succeeded', {
+                pusherServer.trigger(`payments-user_${orderSession.user_id.toString()}`, 'payment-failed', {
                     success: false,
                     type: "error",
                     msg: "Your payment was failed!"

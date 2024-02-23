@@ -1,5 +1,4 @@
 import ConnectDB from "@/utils/connect_db"
-import { generateGiftCode } from "@/utils/generatePassword"
 import Product from "@/models/product"
 import mongoose from "mongoose"
 import sendSMS from "@/utils/sendSMS"

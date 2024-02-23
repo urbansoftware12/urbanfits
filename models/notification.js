@@ -32,4 +32,4 @@ const NotificationSchema = new mongoose.Schema({
     description: String
 }, { timestamps: true })
 
-module.exports = mongoose.models.Notification || mongoose.model("Notification", NotificationSchema)
+export default mongoose.models.Notification || mongoose.model("Notification", NotificationSchema)

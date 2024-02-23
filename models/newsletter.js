@@ -3,17 +3,13 @@ import mongoose from "mongoose"
 const NewsletterSchema = new mongoose.Schema({
     email: {
         type: String,
-        // unique: true,
-        // sparse: true
     },
     phone: {
-        type: String,
-        // unique: true,
-        // sparse: true
+        type: String
     },
     gender: {
         type: String,
-        enum: ["male", "female", "fluid"],
+        enum: ["male", "female", "other"],
         required: [true, "Please enter a valid gender"]
     },
     interests: {
@@ -42,4 +38,4 @@ const NewsletterSchema = new mongoose.Schema({
 
 }, { timestamps: true })
 
-module.exports = mongoose.models.Newsletter || mongoose.model("Newsletter", NewsletterSchema)
+export default mongoose.models.Newsletter || mongoose.model("Newsletter", NewsletterSchema)

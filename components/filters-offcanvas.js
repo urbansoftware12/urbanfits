@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import useWallet from "@/hooks/useWallet";
 import Button from "./buttons/simple_btn";
 import toaster from "@/utils/toast_function";
@@ -80,7 +80,7 @@ export default function FilterBar({ show, setFilterBar, array = [], minPrice = 0
         setMax(formatPriceNum(maxPrice))
     }, [array])
 
-    return <main id="filter_offcanvas" onClick={closeFilterBar} className={`${show ? null : "opacity-0 pointer-events-none"} fixed z-[200] inset-0 bg-gradient-to-br from-black/25 to-pink-600/25 w-full h-full transition-all duration-300`}>
+    return <main id="filter_offcanvas" onClick={closeFilterBar} className={`${show ? null : "opacity-0 pointer-events-none"} fixed z-[200] inset-0 bg-gradient-to-br from-black/25 to-black/40 w-full h-full transition-all duration-300`}>
         <section className={`w-full mid:w-1/2 lg:w-[30%] h-full ${show ? null : "-translate-x-full scale-75"} bg-white shadow-lg transition-all duration-300 overflow-x-clip overflow-y-scroll`}>
 
             <nav className="w-full p-4 mid:px-6 mid:py-3 flex justify-between items-center border-b">
@@ -114,11 +114,8 @@ export default function FilterBar({ show, setFilterBar, array = [], minPrice = 0
                     <h2 className="font_urbanist_bold text-sm lg:text-base">Size(s)</h2>
                     {selectedSizes.length ? <button onClick={() => dropSpecificFilter("size_filter")} className="flex items-center text-10px lg:text-xs bg-red-500 text-white px-4 py-1.5 rounded-full gap-x-1.5"><i className="fa-solid fa-xmark" /> Drop Filter</button> : null}
                 </div>
-                <div className="w-full max-h-[20rem] p-2 border border-pinky rounded-xl overflow-y-scroll">
-                    {availableSizes.map((size, index) => <button onClick={() => selectSize(size)} className="w-full flex justify-between items-center px-4 py-2 rounded-xl hover:bg-gray-100 overflow-clip">
-                        <span key={index} name={size} className={`w-7 aspect-square flex justify-center items-center font_urbanist_bold text-xs border-[0.5px] border-pinky rounded-full ${selectedSizes.includes(size) ? "text-white bg-pinky equillibrium_shadow" : "text-black"} transition-all`}>{size}</span>
-                        {selectedSizes.includes(size) ? <i className="fa-solid fa-check text-10px text-pinky" /> : null}
-                    </button>)}
+                <div className="w-full max-h-[20rem] flex flex-wrap gap-x-2 overflow-y-auto">
+                    {availableSizes.map((size, index) => <button onClick={() => selectSize(size)} key={index} name={size} className={`w-7 aspect-square flex justify-center items-center font_urbanist_bold text-xs border-[0.5px] border-pinky rounded-full ${selectedSizes.includes(size) ? "text-white bg-pinky equillibrium_shadow" : "text-black"} transition-all`}>{size}</button>)}
                 </div>
 
                 <div className="w-full my-6 flex justify-between items-center gap-x-3">

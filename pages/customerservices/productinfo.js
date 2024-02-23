@@ -1,4 +1,3 @@
-import React from 'react'
 import CutomerServices from '.'
 
 export default function ProductInfo() {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useCart } from "react-use-cart";
 import LinkBtn from '@/components/buttons/link_btn';
 import Button from './buttons/simple_btn';
@@ -7,7 +7,7 @@ import useWallet from '@/hooks/useWallet';
 // Image imports
 import Image from 'next/image'
 import EmptyCartVector from "../public/emptyCart.svg"
-const CartBg = process.env.NEXT_PUBLIC_BASE_IMG_URL +  '/website-copyrights/cartbg.webp'
+const CartBg = process.env.NEXT_PUBLIC_BASE_IMG_URL + '/website-copyrights/cartbg.webp'
 import Link from 'next/link';
 
 // Cart item function
@@ -95,16 +95,12 @@ function CartItem(props) {
 
 export default function Cart(props) {
     const { isEmpty, items, cartTotal, removeItem, emptyCart } = useCart()
-    const [shippingRates, setShippingRates] = useState(null)
     const { formatPrice, getShippingRates } = useWallet()
-
-    useEffect(() => {
-        getShippingRates((data) => setShippingRates(data))
-    }, [])
+    const shippingRates = getShippingRates()
 
     const calculateTotolShippingFee = (fees) => {
         const filteredItems = items.filter(item => !item.id.startsWith("giftcard_"))
-        if(!filteredItems.length) return 0
+        if (!filteredItems.length) return 0
         const totalWeight = filteredItems.reduce((accValue, item) => { return accValue + (item.weight * item.quantity) }, 0)
         if (totalWeight <= 5100) return fees
         const additionalWeight = totalWeight - 5100
@@ -168,7 +164,7 @@ export default function Cart(props) {
                         </div>
                     </div>
                     <div className="w-full px-4 lg:px-14 mb-20">
-                        <MoreToExplore categoryId={items[0]? items[0]?.category_id : "64a59d5816b4c91fa1967b2e"} />
+                        <MoreToExplore categoryId={items[0] ? items[0]?.category_id : "64a59d5816b4c91fa1967b2e"} />
                     </div>
                 </section>}
         </div>

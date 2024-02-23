@@ -1,10 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useCart } from "react-use-cart";
 import { useRouter } from 'next/router';
 import dynamic from 'next/dynamic';
 import useUser from '@/hooks/useUser';
 import useWallet from "@/hooks/useWallet"
-import useAddress from '@/hooks/useAddress';
 import Link from 'next/link'
 import ToTopBtn from '../buttons/toTopBtn';
 import Image from 'next/image';
@@ -48,7 +47,7 @@ const SecondaryNavbar = (props) => {
         return `${currency} ${minOrders[currency]}`
     }
 
-    if (window.matchMedia('(min-width: 760px)').matches) return <nav className="sticky top-0 left-0 right-0 z-40 w-full max-w-[2000px] mx-auto h-[50px] flex justify-between items-end px-7 lg:px-8 xl:px-10 2xl:px-16 font_urbanist text-[15px] bg-white shadow transition-all duration-300">
+    if (window.matchMedia('(min-width: 760px)').matches) return <nav className="sticky top-4 left-0 right-0 z-40 w-full max-w-[2000px] mx-auto h-[50px] flex justify-between items-end px-7 lg:px-8 xl:px-10 2xl:px-16 font_urbanist text-[15px] bg-white shadow transition-all duration-300">
         <ListItem onClick={props.closeCart} key={1} href='/products/category/all-categories' categories>All Categories</ListItem>
         <ListItem onClick={props.closeCart} key={2} href='/products/category/64d517f6218f4e9ee6253b18?name=new+collection'>New Collection</ListItem>
         <ListItem onClick={props.closeCart} key={3} href='/products/category/64a59d5816b4c91fa1967b2e?name=women'>Women</ListItem>
@@ -69,27 +68,21 @@ const SecondaryNavbar = (props) => {
 }
 
 export default function Navbar() {
-    const { user, country, notifications, getNotifications } = useUser()
-    const { points, getUfBalance, currency } = useWallet()
-    const { address, getAddress } = useAddress()
-    const { totalUniqueItems } = useCart()
-    const [cart, setCart] = useState(false)
-    const [logout, setLogout] = useState(false)
-    const [langModal, setLangModal] = useState(false)
-    const url = useRouter().pathname
+    const { user, country, notifications, getNotifications, address, getAddress } = useUser();
+    const { points, getUfBalance, currency } = useWallet();
+    const { totalUniqueItems } = useCart();
+    const [cart, setCart] = useState(false);
+    const [logout, setLogout] = useState(false);
+    const [langModal, setLangModal] = useState(false);
+    const url = useRouter().pathname;
     const Exception = url.startsWith("/about") || (window.matchMedia('(max-width: 760px)').matches && (url.startsWith('/auth') || (url.startsWith('/user/') && url.length > '/user/'.length)))
     const unseenNotificCount = notifications?.filter(notific => notific.seen === false).length || 0
 
     useEffect(() => {
-        getNotifications()
-        if (!address) getAddress()
-        getUfBalance()
-    }, [])
-
-    const getDisplayAddress = () => {
-        if (!address || !address.shipping_address) return <Link href='/user/address'>Set your Address</Link>
-        return address.shipping_address.address
-    }
+        getNotifications();
+        getUfBalance();
+        if (!address) getAddress();
+    }, [user])
 
     const closeCart = () => {
         document.body.style.overflowY = 'visible'
@@ -106,14 +99,14 @@ export default function Navbar() {
         <Logout show={logout} setLogout={setLogout} />
         <LanguageModal show={langModal} setLangModal={setLangModal} />
         <ToTopBtn />
-        <nav className="sticky z-50 font_urbanist w-full max-w-[2000px] mx-auto h-[45px] md:h-[65px] flex justify-between items-end md:items-center px-7 lg:px-8 xl:px-10 2xl:px-16 bg-white">
+        <nav className="sticky z-50 font_urbanist w-full h-[45px] md:h-[65px] flex justify-between items-end md:items-center px-7 lg:px-8 xl:px-10 2xl:px-16 bg-white">
             <Link href='/' className='font_copper text-[22px] lg:text-2xl tracking-1 leading-none'><h1>URBAN FITS</h1></Link>
             <Search classes="hidden md:flex" />
             <Link href={user && user.email ? '/user/address' : "#"} className="hidden lg:flex items-center text-black">
                 <LocationIcon />
                 <div className="flex flex-col justify-center ml-3 items-start text-[13px]">
                     <p className="font_urbanist leading-snug">Deliver to</p>
-                    <p className="font_urbanist_bold truncate max-w-[130px]">{getDisplayAddress()}</p>
+                    <p className="font_urbanist_bold truncate max-w-[130px]">{address?.shipping_address?.address || "Set your Address"}</p>
                 </div>
             </Link>
             <button onClick={() => {
@@ -135,7 +128,7 @@ export default function Navbar() {
                         <Link onClick={closeCart} href="/user/orders/orders" className="w-full px-4 border-b hover:bg-slate-100 flex items-center py-3 transition-all">My Orders</Link>
                         <Link onClick={closeCart} href="/user/orders/pending" className="w-full px-4 border-b hover:bg-slate-100 flex items-center py-3 transition-all">Orders in Progress</Link>
                         <Link onClick={closeCart} href="/user/shopping-lists" className="w-full px-4 border-b hover:bg-slate-100 flex items-center py-3 transition-all">My Shopping Lists</Link>
-                        <button onClick={() => setLogout(!logout)} className="w-full px-4 hover:bg-slate-100 flex items-center py-3 transition-all gap-x-2"><LogoutIcon />Log Out</button>
+                        <span onClick={() => setLogout(!logout)} className="w-full px-4 cursor-pointer hover:bg-slate-100 flex items-center py-3 transition-all gap-x-2"><LogoutIcon />Log Out</span>
                     </div>
                 </>
                     : <><Link href='/auth/login'>Login</Link> &nbsp;/&nbsp;<Link href='/auth/signup'>Register</Link></>}
@@ -146,10 +139,12 @@ export default function Navbar() {
                     <DropDownIcon />
                 </button>
                 {user ? <Link href='/user/inbox/primary' className='relative'>
-                    {notifications && notifications.some(notific => !notific.seen) ? <span className="absolute top-0 right-0 z-10 translate-x-1/2 translate-y-[10%] lg:translate-y-[-30%] w-2 h-2 lg:w-4 lg:h-4 flex justify-center items-center text-[10px] border border-white aspect-square rounded-full bg-[#FF4A60]"><p className='hidden lg:block text-white'>{unseenNotificCount}</p></span> : null}
-                    <button className="fa-regular fa-envelope text-[24px] translate-y-[8%] lg:translate-y-[15%] text-[#4d4d4d]"></button>
+                    {notifications && notifications.some(notific => !notific.seen) ? <span className="absolute -top-1 right-0 z-10 translate-x-1/2 translate-y-[10%] lg:translate-y-[-30%] w-2 h-2 lg:w-4 lg:h-4 flex justify-center items-center text-[10px] border border-white aspect-square rounded-full bg-[#FF4A60]"><p className='hidden lg:block text-white'>{unseenNotificCount}</p></span> : null}
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="19" viewBox="0 0 21 16" fill="none">
+                        <path d="M1.46875 4V4.24496L1.66232 4.39509L8.73082 9.8774C9.76266 10.7325 11.2415 10.7325 12.2733 9.87735L19.3378 4.39501L19.5312 4.24488V4V2.66667C19.5312 2.03131 19.0195 1.5 18.375 1.5H2.625C1.98053 1.5 1.46875 2.03131 1.46875 2.66667V4ZM2.27269 5.10298L1.46875 4.48753V5.5V13.3333C1.46875 13.9687 1.98053 14.5 2.625 14.5H18.375C19.0195 14.5 19.5312 13.9687 19.5312 13.3333V5.5V4.48753L18.7273 5.10298L12.1961 10.103L12.1737 10.1201L12.1534 10.1396C11.7444 10.5329 11.1278 10.75 10.4851 10.75C9.84161 10.75 9.23991 10.5328 8.85355 10.1464L8.83018 10.1231L8.80394 10.103L2.27269 5.10298ZM1 2.66667C1 1.97591 1.1331 1.58565 1.33026 1.36451C1.5156 1.15663 1.8475 1 2.5 1H18.375C19.0269 1 19.4031 1.15676 19.6231 1.38154C19.8453 1.60847 20 1.99809 20 2.66667V13.3333C20 14.0019 19.8453 14.3915 19.6231 14.6185C19.4031 14.8432 19.0269 15 18.375 15H2.625C1.97308 15 1.59689 14.8432 1.37686 14.6185C1.15471 14.3915 1 14.0019 1 13.3333V2.66667Z" fill="black" stroke="black" />
+                    </svg>
                 </Link> : null}
-                <button onClick={toggleCart} className="hidden md:block relative">
+                <button onClick={() => { toggleCart(); scrollTo(0, 0) }} className="hidden md:block relative">
                     {totalUniqueItems !== 0 ? <span className="absolute top-0 right-0 translate-x-1/2 -translate-y-1/2 w-4 h-4 flex justify-center items-center border border-white text-white text-[10px] aspect-square rounded-full bg-[#FF4A60]">{totalUniqueItems}</span> : null}
                     <Image src={bag} />
                 </button>

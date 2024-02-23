@@ -1,4 +1,3 @@
-import React from 'react'
 import LinkBtn from '../buttons/link_btn'
 
 const Card = (props)=> {

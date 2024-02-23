@@ -1,18 +1,17 @@
-import React, { useState } from 'react'
-import Card from '../components/cards/card';
+import { useState } from 'react'
+// import Card from '../components/cards/card';
 import toaster from '@/utils/toast_function';
 import Button from '../components/buttons/simple_btn';
 import Head from 'next/head';
 import Loader from '@/components/loaders/loader';
 import countryCodes from '@/static data/countryCodes';
-// imports for the schema and validation
 import { useFormik } from 'formik';
 import * as Yup from 'yup'
 import Tooltip from '../components/tooltip';
 
-const InfoCard = (props) => {
-    return <Card href={props.href} title={props.title} value={props.value} btnValue={props.btnValue} btnClasses="w-1/2 md:w-1/3 text-sm" classes='w-full h-1/3 mb-7 p-9 justify-center items-center md:items-start' />
-}
+// const InfoCard = (props) => {
+//     return <Card href={props.href} title={props.title} value={props.value} btnValue={props.btnValue} btnClasses="w-1/2 md:w-1/3 text-sm" classes='w-full h-1/3 mb-7 p-9 justify-center items-center md:items-start' />
+// }
 
 export default function Contact() {
     const [loader, setLoader] = useState(null)

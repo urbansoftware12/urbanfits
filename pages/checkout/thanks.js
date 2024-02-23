@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import AlertPage from '@/components/alertPage';
@@ -42,7 +42,7 @@ export default function Thanks() {
         const timeOutId = setTimeout(() => {
             setNegativeState(<AlertPage type="error" heading="Oh Snap! Order Not Found" message="Either your order session expired or request timed out. Please check your Account Dashboard or your email inbox to see your order updates." />)
         }, 60000);
-        if (user) getUfBalance()
+        getUfBalance()
 
         return () => {
             clearTimeout(timeOutId)

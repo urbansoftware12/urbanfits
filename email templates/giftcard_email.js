@@ -54,7 +54,7 @@ a[x-apple-data-detectors] {
     <tr style="width:100%">
      <td align="left" style="padding:0;Margin:0">
 	 <img alt="Urban Fits"
-	 src="https://urban-fits.s3.eu-north-1.amazonaws.com/website-copyrights/logo_gold_outlined.png"
+	 src="${process.env.NEXT_PUBLIC_BASE_IMG_URL}/website-copyrights/logo_gold_outlined.webp"
 	 width="100"
 	 style="display:block;outline:none;border:none;text-decoration:none;margin:0 auto;margin-top:7rem" />
 	  <p style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family:roboto, 'helvetica neue', helvetica, arial, sans-serif;line-height:26px;font-size:16px;margin:16px 0">Dear ${username || "User"},</p>

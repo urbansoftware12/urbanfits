@@ -1,4 +1,3 @@
-import React from 'react'
 import Link from 'next/link';
 import Image from 'next/image';
 import { Splide, SplideTrack, SplideSlide } from '@splidejs/react-splide';

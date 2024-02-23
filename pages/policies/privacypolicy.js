@@ -1,4 +1,3 @@
-import React, { useEffect } from 'react'
 import Link from 'next/link'
 import PoliciesPage from '.'
 import { useRouter } from 'next/router'

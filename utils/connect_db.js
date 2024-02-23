@@ -11,4 +11,8 @@ const ConnectDB = async () => {
     console.error("Error connecting to MongoDB:", error);
   }
 }
+export const immutableCondition = (doc) => {
+  const { _immutability } = doc.options;
+  return !(_immutability && _immutability === "disable")
+}
 export default ConnectDB;

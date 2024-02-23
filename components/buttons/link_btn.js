@@ -1,4 +1,3 @@
-import React from 'react'
 import Link from 'next/link'
 import Spinner from '../loaders/spinner'
 export default function LinkBtn(props) {

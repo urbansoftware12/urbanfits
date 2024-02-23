@@ -1,17 +1,13 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import useUser from '@/hooks/useUser';
 import Link from 'next/link'
 import Image from 'next/image';
 import User from '.';
-import jwt from 'jsonwebtoken';
 import uploadImage from '@/utils/uploadImage'
-import ifExists from '@/utils/if_exists';
 import Head from 'next/head';
-import Loader from '@/components/loaders/loader';
 import Error403 from '../403';
 import Newsletter from '@/components/modals/newsletter';
 import useNewsletter from '@/hooks/useNewsletter';
-import useAddress from '@/hooks/useAddress';
 import useWallet from '@/hooks/useWallet'
 import Button from '../../components/buttons/simple_btn';
 import countryCodes from '@/static data/countryCodes';
@@ -29,39 +25,32 @@ import { EditIcon } from '@/public/accountIcons';
 
 // Function to show addresses of the user in a container
 const AddressContainer = (props) => {
-    const { type } = props
+    const { type, address } = props;
     const addressLink = <Link href='/user/address' id='address' className="w-full px-3 py-4 border border-gray-400 text-sm rounded-md flex justify-between items-center" >Add New Address<i className="material-symbols-outlined">add</i></Link>
-    let address = jwt.decode(localStorage.getItem("addressToken"))
-    if (address) {
-        let userAddress = address._doc
-        if (!userAddress || !userAddress[type]) return addressLink
-        return <div className="w-full p-4 text-sm border border-black flex justify-between items-start rounded-lg bg-white">
-            <div>
-                <span>{userAddress[type].address_title}</span><br />
-                <span>{userAddress[type].firstname} {userAddress[type].lastname}</span><br />
-                <span>{userAddress[type].address}</span><br />
-                <span>{userAddress[type].city}, {userAddress[type].country}</span><br />
-                <span>{userAddress[type].phone_prefix} {userAddress[type].phone_number}</span>
-            </div>
-            <Link href='/user/address' className='text-xs' >Modify<i className="fa-regular fa-pen-to-square mx-2"></i></Link>
+    if (address && address[type]) return <div className="w-full p-4 text-sm border border-black flex justify-between items-start rounded-lg bg-white">
+        <div>
+            <span>{userAddress[type].address_title}</span><br />
+            <span>{userAddress[type].firstname} {userAddress[type].lastname}</span><br />
+            <span>{userAddress[type].address}</span><br />
+            <span>{userAddress[type].city}, {userAddress[type].country}</span><br />
+            <span>{userAddress[type].phone_prefix} {userAddress[type].phone_number}</span>
         </div>
-    }
+        <Link href='/user/address' className='text-xs' >Modify<i className="fa-regular fa-pen-to-square mx-2"></i></Link>
+    </div>
     else return addressLink
 }
 
 export default function Personalinfo() {
-    const { user, updateUser, country } = useUser()
-    const { currency } = useWallet()
-    const { newsletterData, getNewsletterData, updateNewsletterData } = useNewsletter()
-    const { address, getAddress } = useAddress()
-    const [imgSpinner, SetImgSpinner] = useState(null)
-    const [loader, setLoader] = useState(false)
-    const [letterModal, setLetterModal] = useState(false)
-    const [genderModal, setGenderModal] = useState(false)
-    const [userInfoModal, setUserInfoModal] = useState(false)
-    const [countryModal, setCoutnryModal] = useState(false)
-    const [languageModal, setLanguageModal] = useState(false)
-    const [currencyModal, setCurrencyModal] = useState(false)
+    const { user, isLoggedIn, updateUser, country, address, getAddress, userLoading } = useUser();
+    const { currency } = useWallet();
+    const { newsletterData, getNewsletterData, updateNewsletterData } = useNewsletter();
+    const [imgSpinner, SetImgSpinner] = useState(null);
+    const [letterModal, setLetterModal] = useState(false);
+    const [genderModal, setGenderModal] = useState(false);
+    const [userInfoModal, setUserInfoModal] = useState(false);
+    const [countryModal, setCoutnryModal] = useState(false);
+    const [languageModal, setLanguageModal] = useState(false);
+    const [currencyModal, setCurrencyModal] = useState(false);
     const getPfp = () => {
         if (!user) return
         if (user.image) return user.image
@@ -71,7 +60,7 @@ export default function Personalinfo() {
     const onFileChange = async (e) => {
         const file = e.target.files[0]
         SetImgSpinner(<Spinner />)
-        const imgUrl = await uploadImage(file, user._id, 'user-profiles')
+        const imgUrl = await uploadImage(file, `user-profiles/${user._id}`)
         setPhoto(imgUrl)
         await updateUser({ image: imgUrl })
         SetImgSpinner(null)
@@ -90,57 +79,46 @@ export default function Personalinfo() {
     const { values, errors, touched, handleBlur, handleChange, handleReset, handleSubmit, setValues } = useFormik({
         initialValues: { title: 'Title', firstname: '', lastname: '', gender: 'Gender', phone_prefix: 'Select Country Code', phone_number: '' },
         validationSchema: validatedSchema,
-        onSubmit: async (values) => {
-            setLoader(<Loader />)
-            await updateUser(values)
-            setLoader(null)
-        }
+        onSubmit: values => updateUser(values)
     })
-    useEffect(() => {
-        if (!user) return
-        setValues({
-            title: ifExists(user.title),
-            firstname: ifExists(user.firstname),
-            lastname: ifExists(user.lastname),
-            gender: ifExists(user.gender),
-            phone_prefix: ifExists(user.phone_prefix),
-            phone_number: ifExists(user.phone_number)
-        })
-        if (!newsletterData) return () => getNewsletterData()
-    }, [])
-
-    useEffect(() => {
-        return async () => {
-            if (!address) {
-                setLoader(<Loader />)
-                await getAddress()
-                return setLoader(false)
-            }
-        }
-    }, [address])
 
     const newsletterSubToggle = async (e) => {
         const { name } = e.target
         if (name == "active_by_email") {
             if (!newsletterData || !newsletterData.email) return toggleLetterModal()
             else {
-                setLoader(<Loader />)
+                useUser.setState({ userLoading: true });
                 await updateNewsletterData({ active_by_email: !newsletterData.active_by_email })
-                setLoader(false)
+                useUser.setState({ userLoading: false });
             }
         }
         if (name == "active_by_phone") {
             if (!newsletterData || !newsletterData.phone) return toggleLetterModal()
             else {
-                setLoader(<Loader />)
+                useUser.setState({ userLoading: true });
                 await updateNewsletterData({ active_by_phone: !newsletterData.active_by_phone })
-                setLoader(false)
+                useUser.setState({ userLoading: false });
             }
         }
-
     }
-    if (!user) return <Error403 />
-    if (window.matchMedia('(max-width: 760px)').matches) return <>
+
+    useEffect(() => {
+        if (user) {
+            setValues({
+                title: user.title || '',
+                firstname: user.firstname || '',
+                lastname: user.lastname || '',
+                gender: user.gender || '',
+                phone_prefix: user.phone_prefix || '',
+                phone_number: user.phone_number || ''
+            })
+            if (!address) getAddress()
+            if (!newsletterData) getNewsletterData()
+        }
+    }, [])
+
+    if (!user && !isLoggedIn()) return <Error403 />
+    if (user && window.matchMedia('(max-width: 760px)').matches) return <>
         <Head><title>My Profile</title></Head>
         <main className="relative w-screen h-screen p-4 pb-10 bg-white">
             <div className="absolute left-0 top-0 right-0 w-full p-4 border-b border-gray-100 flex justify-between items-center">
@@ -154,7 +132,7 @@ export default function Personalinfo() {
                         <i className="fa-solid fa-camera text-white" />Upload
                     </span>
                     {imgSpinner}
-                    <Image className="w-full h-full object-cover" width={150} height={150} src={process.env.NEXT_PUBLIC_BASE_IMG_URL + photo + '?timestamp=123'} alt="avatar" />
+                    <Image className="w-full h-full object-cover" width={150} height={150} src={process.env.NEXT_PUBLIC_BASE_IMG_URL + photo + '?timestamp=' + Date.now()} alt="avatar" />
                 </label>
                 <input type="file" id='pfp' name='pfp' accept="image/*" onChange={onFileChange} className="opacity-0 w-0 h-0 appearance-none" />
                 <button onClick={() => setUserInfoModal(true)} className="flex font_urbanist_bold text-base gap-x-2">{user.firstname} {user.lastname} <EditIcon /></button>
@@ -194,13 +172,12 @@ export default function Personalinfo() {
     </>
     return <>
         <Head><title>My Profile</title></Head>
-        {loader}
         <Newsletter show={letterModal} toggleModal={toggleLetterModal} />
-        <User>
+        <User loading={userLoading}>
             <form className="mt-10 font_urbanist gap-y-5" onReset={handleReset} onSubmit={handleSubmit} >
                 <h1 className='text-sm lg:text-base font_urbanist_bold' >Personal Information</h1>
                 <div className="flex flex-col md:flex-row md:items-end justify-between w-full text-sm ">
-                    <div className="relative w-full md:w-2/5 data_field flex items-center border-b border-b-gray-200 focus:border-yellow-700 hover:border-yellow-600 transition py-2 my-6">
+                    <div className="relative w-full md:w-2/5 data_field flex items-center border-b border-b-gray-200 hover:border-pink-300 transition py-2 my-6">
                         {touched.title && errors.title ? <Tooltip classes="form-error" content={errors.title} /> : null}
                         <select value={values.title} name='title' onBlur={handleBlur} className="w-full border-none outline-none bg-transparent border-b-gray-800" onChange={handleChange}>
                             <option >Title</option>
@@ -208,17 +185,17 @@ export default function Personalinfo() {
                             <option id="Mrs" value="Mrs.">Ms</option>
                         </select>
                     </div>
-                    <div className="relative w-full md:w-2/5 data_field flex items-center border-b border-b-gray-200 focus:border-yellow-700 hover:border-yellow-600 transition py-2 mb-6">
+                    <div className="relative w-full md:w-2/5 data_field flex items-center border-b border-b-gray-200 hover:border-pink-300 transition py-2 mb-6">
                         {touched.firstname && errors.firstname ? <Tooltip classes="form-error" content={errors.firstname} /> : null}
                         <input className="w-full bg-transparent outline-none border-none" type="text" name="firstname" id="firstname" value={values.firstname} onChange={handleChange} onBlur={handleBlur} placeholder="First Name" />
                     </div>
                 </div>
                 <div className="flex flex-col md:flex-row justify-between w-full text-sm">
-                    <div className="relative w-full md:w-2/5 data_field flex items-center border-b border-b-gray-200 focus:border-yellow-700 hover:border-yellow-600 transition py-2 mb-6">
+                    <div className="relative w-full md:w-2/5 data_field flex items-center border-b border-b-gray-200 hover:border-pink-300 transition py-2 mb-6">
                         {touched.lastname && errors.lastname ? <Tooltip classes="form-error" content={errors.lastname} /> : null}
                         <input className="w-full bg-transparent outline-none border-none" type="lastname" name="lastname" id="lastname" value={values.lastname} onChange={handleChange} onBlur={handleBlur} placeholder="Last Name" />
                     </div>
-                    <div className="relative w-full md:w-2/5 data_field flex items-center border-b border-b-gray-200 focus:border-yellow-700 hover:border-yellow-600 transition py-2 mb-6">
+                    <div className="relative w-full md:w-2/5 data_field flex items-center border-b border-b-gray-200 hover:border-pink-300 transition py-2 mb-6">
                         {touched.gender && errors.gender ? <Tooltip classes="form-error" content={errors.gender} /> : null}
                         <select value={values.gender} name='gender' onBlur={handleBlur} className="w-full border-none outline-none bg-transparent border-b-gray-800" onChange={handleChange}>
                             <option disabled >Gender</option>
@@ -227,13 +204,13 @@ export default function Personalinfo() {
                             <option value="fluid">Fluid</option>
                         </select>
                     </div>
-                    {/* <div className="relative w-2/5 data_field flex items-center border-b border-b-gray-200 focus:border-yellow-700 hover:border-yellow-600 transition py-2 mb-4">
+                    {/* <div className="relative w-2/5 data_field flex items-center border-b border-b-gray-200 hover:border-pink-300 transition py-2 mb-4">
                                     {touched.gender && errors.gender ? <Tooltip classes="form-error" content={errors.gender} /> : null}
                                     <input className="w-full bg-transparent outline-none border-none" type="text" name="gender" id="gender" value={values.gender} onChange={handleChange} onBlur={handleBlur} placeholder="Date Of Birth" />
                                 </div> */}
                 </div>
                 <div className="flex flex-col md:flex-row justify-between w-full text-sm">
-                    <div className="relative w-full md:w-2/5 data_field flex items-center border-b border-b-gray-200 focus:border-yellow-700 hover:border-yellow-600 transition py-2 mb-6">
+                    <div className="relative w-full md:w-2/5 data_field flex items-center border-b border-b-gray-200 hover:border-pink-300 transition py-2 mb-6">
                         {touched.phone_prefix && errors.phone_prefix ? <Tooltip classes="form-error" content={errors.phone_prefix} /> : null}
                         <select value={values.phone_prefix} name='phone_prefix' onBlur={handleBlur} className="w-full border-none outline-none bg-transparent border-b-gray-800" onChange={handleChange}>
                             {countryCodes.map((item) => {
@@ -242,7 +219,7 @@ export default function Personalinfo() {
                             })}
                         </select>
                     </div>
-                    <div className="relative w-full md:w-2/5 data_field flex items-center border-b border-b-gray-200 focus:border-yellow-700 hover:border-yellow-600 transition py-2 mb-6">
+                    <div className="relative w-full md:w-2/5 data_field flex items-center border-b border-b-gray-200 hover:border-pink-300 transition py-2 mb-6">
                         {touched.phone_number && errors.phone_number ? <Tooltip classes="form-error" content={errors.phone_number} /> : null}
                         <input className="w-full bg-transparent outline-none border-none" type="tel" name="phone_number" id="phone_number" size="15" maxLength={15} value={values.phone_number} onBlur={handleBlur} onChange={handleChange} placeholder="Phone Number" />
                     </div>
@@ -263,15 +240,15 @@ export default function Personalinfo() {
                     </div>
                 </div>
                 <div className="w-full flex justify-end">
-                    <Button disabled={!loader ? false : true} type="reset" bg="bg-gray-100" text="black" classes="w-full md:w-1/3 mx-2" font='font_urbanist_medium'>Cancel</Button>
-                    <Button loading={!loader ? false : true} type="submit" classes="w-full md:w-1/3 ml-2" font='font_urbanist_medium'>Save</Button>
+                    <Button disabled={userLoading} type="reset" bg="bg-gray-100" text="black" classes="w-full md:w-1/3 mx-2" font='font_urbanist_medium'>Cancel</Button>
+                    <Button loading={userLoading} type="submit" classes="w-full md:w-1/3 ml-2" font='font_urbanist_medium'>Save</Button>
                 </div>
             </form>
             <div className='w-full' >
                 <div className='my-14 space-y-5' >
                     <h2 className="text-sm lg:text-base font_urbanist_bold">Email</h2>
-                    <div className=" w-full data_field flex justify-between items-center border-b border-b-gray-200 text-sm focus:border-yellow-700 hover:border-yellow-600 transition py-2 mb-4">
-                        <input className="w-full bg-transparent outline-none border-none" readOnly value={ifExists(user.email, "example@gmail.com")} type="email" name="email" id="email" /><Link href='/user/emailaddress' >{user.register_provider === "urbanfits" ? <i className="material-symbols-outlined">edit_square</i> : null}</Link>
+                    <div className=" w-full data_field flex justify-between items-center border-b border-b-gray-200 text-sm hover:border-pink-300 transition py-2 mb-4">
+                        <input className="w-full bg-transparent outline-none border-none" readOnly value={user.email} type="email" name="email" id="email" /><Link href='/user/emailaddress' >{user.register_provider === "urbanfits" ? <i className="material-symbols-outlined">edit_square</i> : null}</Link>
                     </div>
                 </div>
                 <div className='my-14 space-y-5' >

@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useRef } from 'react';
+import { useLayoutEffect, useRef } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import gsap from 'gsap';
@@ -165,18 +165,18 @@ const AboutComponent = () => {
                         scrub: 1.5
                     }
                 })
-                // .to(endingHeading.current, {
-                //     opacity: 1,
-                //     scale: 1,
-                //     duration: 2000,
-                //     pointerEvents: "auto",
-                //     scrollTrigger: {
-                //         trigger: section_4.current,
-                //         start: "top bottom",
-                //         markers: true,
-                //         scrub: 1.5
-                //     }
-                // })
+            // .to(endingHeading.current, {
+            //     opacity: 1,
+            //     scale: 1,
+            //     duration: 2000,
+            //     pointerEvents: "auto",
+            //     scrollTrigger: {
+            //         trigger: section_4.current,
+            //         start: "top bottom",
+            //         markers: true,
+            //         scrub: 1.5
+            //     }
+            // })
         }, wraperRef.current)
         return () => { ctx.revert() }
     }, [])

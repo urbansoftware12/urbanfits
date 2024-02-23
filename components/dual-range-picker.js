@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState, useRef } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import ranger from "@/styles/range-picker.module.css"
 
 export default function DualRangePicker({ min, max, onChange }) {

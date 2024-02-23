@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import Button from '../buttons/simple_btn'
 import Spinner from '../loaders/spinner'
 

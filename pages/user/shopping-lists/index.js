@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import useUser from '@/hooks/useUser';
 import User from '..';
-import Link from 'next/link'
 import DeleteAction from '@/components/modals/deleteAction';
 import CreateShopListModal from '@/components/modals/createshoppinglist';
 import RenameShopListModal from '@/components/modals/renameshoppinglist';
@@ -10,14 +10,14 @@ import Head from 'next/head';
 import Loader from '@/components/loaders/loader';
 
 export default function EmailPassword() {
-    const { lists, getShoppingLists, deleteShoppingList, listLoading } = useShoppingList()
-    const { wishList } = useUser()
-    const [listModal, setListModal] = useState(false)
-    const [renameListModal, setRenameListModal] = useState(null)
-    const [deleteModal, setDeleteModal] = useState(null)
+    const { lists, getShoppingLists, deleteShoppingList, listLoading } = useShoppingList();
+    const { wishList } = useUser();
+    const [listModal, setListModal] = useState(false);
+    const [renameListModal, setRenameListModal] = useState(null);
+    const [deleteModal, setDeleteModal] = useState(null);
 
     useEffect(() => {
-        if (!lists || !lists.length) getShoppingLists()
+        if (!lists?.length) getShoppingLists()
     }, [])
 
     if (window.matchMedia('(max-width: 760px)').matches) return <>
@@ -69,11 +69,10 @@ export default function EmailPassword() {
     </>
     else return <>
         <Head><title>Shopping Lists - Urban Fits</title></Head>
-        {listLoading ? <Loader /> : null}
-        <CreateShopListModal show={listModal} setListModal={setListModal} />
-        {deleteModal}
-        {renameListModal}
-        <User>
+        <User loading={listLoading}>
+            <CreateShopListModal show={listModal} setListModal={setListModal} />
+            {deleteModal}
+            {renameListModal}
             <section className="w-full mt-10">
                 <div key="wishlist" className="group w-full mb-3 p-3 flex justify-between items-center border border-transparent bg-gray-50 hover:border-gray-100 hover:bg-white rounded-xl hover:rounded-md shadow-lg transition-all duration-500 overflow-hidden">
                     <Link href="/products/category/wishlist" className="w-3/5 h-full">

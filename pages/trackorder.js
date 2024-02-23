@@ -1,15 +1,10 @@
-import React from 'react'
-import dynamic from 'next/dynamic'
-const Button = dynamic(() => import('@/components/buttons/simple_btn'))
-
-// imports for the schema and validation
+import Button from '@/components/buttons/simple_btn';
 import { useFormik } from 'formik';
 import * as Yup from 'yup'
 import Tooltip from '../components/tooltip';
 
 export default function Trackorder() {
 
-    // getting data from input fields and applying validation
     const validatedSchema = Yup.object({
         orderemail: Yup.string().email().required("Please enter your email address"),
         ordernumber: Yup.string().matches(/^\d{9,20}$/, "Order Number should'nt contain spaces and must be between 9 and 20 digits").required("Please enter your order number")

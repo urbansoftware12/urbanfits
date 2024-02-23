@@ -1,4 +1,3 @@
-import React from 'react'
 import { useCart } from 'react-use-cart'
 import useWallet from '@/hooks/useWallet'
 import toaster from '@/utils/toast_function'
@@ -100,7 +99,6 @@ export default function Giftcard() {
                     </svg>
                 </section>
             </div>
-
         </main >
     </>
 }

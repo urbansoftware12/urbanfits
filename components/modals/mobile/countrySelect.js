@@ -1,10 +1,10 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import Image from 'next/image'
 import useUser from '@/hooks/useUser'
 import countryCodes from '@/static data/countryCodes'
 
 export default function CountrySelection({ show, setCoutnryModal }) {
-    const { country, setCountry, setGeoSelectedByUser } = useUser()
+    const { country, setCountry } = useUser()
     const [query, setQuery] = useState('')
     const filteredCountries = countryCodes.filter(country => country.name.toLowerCase().includes(query.toLowerCase()))
 
@@ -22,11 +22,12 @@ export default function CountrySelection({ show, setCoutnryModal }) {
         </div>
         <div className="w-full flex flex-col">
             {filteredCountries.map((c, i) => {
-                return <button onClick={() => { setCountry(c); setCoutnryModal(false); setGeoSelectedByUser(true) }} key={i} className={`w-full ${filteredCountries.length === i+1 && "mb-20"} p-4 flex justify-between items-center ${country.country === c.country ? "bg-gray-50 border border-gray-400 rounded-lg" : "border-b border-gray-50"} font_urbanist text-base capitalize`}>
+                return <button onClick={() => { if (c.disabled) return; setCountry(c); setCoutnryModal(false); useUser.setState({ geo_selected_by_user: true }) }} key={i} className={`${c.disabled && "opacity-40 pointer-events-none"} w-full ${filteredCountries.length === i + 1 && "mb-20"} p-4 flex justify-between items-center ${country.country === c.country ? "bg-gray-50 border border-gray-400 rounded-lg" : "border-b border-gray-50"} font_urbanist text-base capitalize`}>
                     <div className='flex items-center gap-x-3'>
                         <span className="w-5 overflow-hidden"><Image width={100} height={80} className="w-full h-full object-cover" src={c.src} alt={c.country} /></span>
                         {c.name}
                     </div>
+                    {c.disabled && <span className="px-2 py-px text-[10px] bg-gray-200 text-black rounded-2xl">coming soon</span>}
                     <span className="text-sm">{c.code}</span>
                 </button>
             })}

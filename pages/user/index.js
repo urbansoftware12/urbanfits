@@ -1,19 +1,18 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import useUser from '@/hooks/useUser'
 import useWallet from '@/hooks/useWallet';
 import useNewsletter from '@/hooks/useNewsletter';
 import Error403 from '@/pages/403';
 import Loader from '@/components/loaders/loader';
+import Spinner from '@/components/loaders/spinner'
 import Newsletter from '@/components/modals/newsletter';
 import Logout from '@/components/modals/logout'
 import Link from 'next/link'
 import uploadImage from '@/utils/uploadImage'
-import ifExists from '@/utils/if_exists'
 // image imports
 import Image from 'next/image';
-import Spinner from '@/components/loaders/spinner'
-const giantSearchIcon = process.env.NEXT_PUBLIC_BASE_IMG_URL +  "/website-copyrights/giant-search.webp?timestamp=123"
+const giantSearchIcon = process.env.NEXT_PUBLIC_BASE_IMG_URL + "/website-copyrights/giant-search.webp?timestamp=123"
 // Icons imports
 import {
     AccountIcon,
@@ -44,7 +43,9 @@ export const Option = (props) => {
             {props.icon}
             {props.children}
         </span>
-        <i className="arrow material-symbols-outlined text-lg text-gray-600 transition-all">chevron_right</i>
+        {route === props.href && <svg xmlns="http://www.w3.org/2000/svg" width="5" height="11" viewBox="0 0 5 11" fill="none">
+            <path d="M0.0809833 10.2834C0.131883 10.3634 0.215502 10.4252 0.306394 10.4543C0.520898 10.5234 0.666323 10.4434 1.01898 10.0471C1.18258 9.86533 1.39345 9.64356 1.48798 9.55267C1.5825 9.46178 2.06241 8.93825 2.54959 8.38926C3.0404 7.84028 3.7639 7.02953 4.16018 6.58963C4.95276 5.70617 5.0509 5.5571 4.98183 5.32806C4.93822 5.19353 4.29833 4.4446 3.69118 3.82653C3.57122 3.70656 3.0913 3.18303 2.6223 2.66314C2.1533 2.14324 1.68067 1.62696 1.56433 1.51789C1.45162 1.40881 1.21894 1.1616 1.04443 0.968922C0.669958 0.554458 0.524533 0.470815 0.306394 0.54353C0.0409911 0.630815 -0.078985 0.939815 0.055534 1.19796C0.110069 1.30339 1.42254 2.77221 1.48434 2.79764C1.49889 2.80492 1.69885 3.01214 1.92425 3.26299C2.1533 3.51385 2.42234 3.80106 2.52414 3.89924C2.73864 4.11374 3.89479 5.39349 3.93115 5.45531C3.95293 5.49892 2.21511 7.45127 1.52797 8.15295C0.986258 8.7092 0.11734 9.67992 0.055534 9.79989C-0.0244503 9.95986 -0.0171789 10.138 0.0809833 10.2834Z" fill="black" />
+        </svg>}
     </Link>
     else return <Link href={props.href} className={`${route === props.href ? 'active_bg text-white lg:text-black active' : 'bg-white text-black'} shadow-md flex justify-center lg:justify-between items-center px-4 py-1 mx-2 lg:m-0 lg:py-5 whitespace-nowrap lg:border-b lg:border-[#F5F5F5] rounded-full lg:rounded text-sm lg:text-base`}>
         {props.children}
@@ -52,8 +53,8 @@ export const Option = (props) => {
 }
 
 
-export default function User(props) {
-    const { user, updateUser, recentItems } = useUser()
+export default function User({ loading, profileNull, children }) {
+    const { user, getMe, isLoggedIn, updateUser, recentItems } = useUser()
     const { points } = useWallet()
     const { newsletterData, getNewsletterData, updateNewsletterData } = useNewsletter()
     const [imgSpinner, SetImgSpinner] = useState(null)
@@ -71,8 +72,7 @@ export default function User(props) {
         const file = e.target.files[0]
         if (file) {
             SetImgSpinner(<Spinner />)
-            const imgUrl = await uploadImage(file, user._id, 'user-profiles')
-            console.log(imgUrl);
+            const imgUrl = await uploadImage(file, `user-profiles/${user._id}`)
             setPhoto(imgUrl)
             await updateUser({ image: imgUrl })
         }
@@ -98,12 +98,15 @@ export default function User(props) {
         }
     }
     useEffect(() => {
+        getMe()
         if (!newsletterData) return () => getNewsletterData()
         if (window.matchMedia('(min-width: 760px)').matches) {
             let activeLink = document.querySelector('#menu_container .active')
             activeLink && activeLink.scrollIntoView()
         }
     }, [])
+
+    const profileImage = user?.image?.includes("google") ? user.image : process.env.NEXT_PUBLIC_BASE_IMG_URL + photo + '?timestamp=' + Date.now()
 
     if (window.matchMedia('(max-width: 760px)').matches) return <>
         <Newsletter show={letterModal} toggleModal={toggleLetterModal} />
@@ -284,8 +287,8 @@ export default function User(props) {
             </section>
         </main>
     </>
-    else if (!user) return <Error403 />
-    else return <main className={`bg-gray-50 w-full md:px-7 lg:px-14 xl:px-20 py-16 flex flex-col lg:flex-row justify-between font_urbanist`}>
+    else if (!user && !isLoggedIn()) return <Error403 />;
+    else if (user) return <main className={`bg-gray-50 w-full md:px-7 lg:px-14 xl:px-20 py-16 flex flex-col lg:flex-row justify-between font_urbanist`}>
         <Logout show={logout} setLogout={setLogout} />
         <section id='menu_container' className="hidden mid:flex lg:hidden w-full pb-7 px-4 rounded-full overflow-x-scroll hide_scrollbar">
             <Option icon={<AccountIcon />} href='/user/myaccount'>My Account</Option>
@@ -314,12 +317,14 @@ export default function User(props) {
                         <LogoutIcon />
                         Log Out
                     </span>
-                    <i className=" arrow material-symbols-outlined text-lg text-gray-600 transition-all">chevron_right</i>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="5" height="11" viewBox="0 0 5 11" fill="none">
+                        <path d="M0.0809833 10.2834C0.131883 10.3634 0.215502 10.4252 0.306394 10.4543C0.520898 10.5234 0.666323 10.4434 1.01898 10.0471C1.18258 9.86533 1.39345 9.64356 1.48798 9.55267C1.5825 9.46178 2.06241 8.93825 2.54959 8.38926C3.0404 7.84028 3.7639 7.02953 4.16018 6.58963C4.95276 5.70617 5.0509 5.5571 4.98183 5.32806C4.93822 5.19353 4.29833 4.4446 3.69118 3.82653C3.57122 3.70656 3.0913 3.18303 2.6223 2.66314C2.1533 2.14324 1.68067 1.62696 1.56433 1.51789C1.45162 1.40881 1.21894 1.1616 1.04443 0.968922C0.669958 0.554458 0.524533 0.470815 0.306394 0.54353C0.0409911 0.630815 -0.078985 0.939815 0.055534 1.19796C0.110069 1.30339 1.42254 2.77221 1.48434 2.79764C1.49889 2.80492 1.69885 3.01214 1.92425 3.26299C2.1533 3.51385 2.42234 3.80106 2.52414 3.89924C2.73864 4.11374 3.89479 5.39349 3.93115 5.45531C3.95293 5.49892 2.21511 7.45127 1.52797 8.15295C0.986258 8.7092 0.11734 9.67992 0.055534 9.79989C-0.0244503 9.95986 -0.0171789 10.138 0.0809833 10.2834Z" fill="black" />
+                    </svg>
                 </button>
             </div>
         </section>
         <section className='bg-white w-full lg:w-[70%] 2xl:w-[73%] px-12 py-10 rounded-lg font_urbanist text-left overflow-x-hidden overflow-y-scroll' >
-            <nav className={`${props.profileNull ? 'hidden' : null} flex flex-col`}>
+            <nav className={`${profileNull ? 'hidden' : null} flex flex-col`}>
                 <h2 className="text-lg lg:text-2xl font_urbanist_bold mb-6">My Account</h2>
                 <div className="w-3/5 md:w-auto flex items-center gap-x-3">
                     <label htmlFor='pfp' className="group relative md:w-20 aspect-square rounded-full cursor-pointer border-2 border-gray-300 hover:bg-black/50 transition-all overflow-hidden">
@@ -327,13 +332,14 @@ export default function User(props) {
                             <i className="fa-solid fa-camera text-white" />Upload
                         </span>
                         {imgSpinner}
-                        <Image className="w-full h-full object-cover" width={150} height={150} src={process.env.NEXT_PUBLIC_BASE_IMG_URL + photo + '?timestamp=123'} alt="avatar" />
+                        <Image className="w-full h-full object-cover" width={150} height={150} src={profileImage} alt="avatar" />
                     </label>
                     <input type="file" id='pfp' name='pfp' accept="image/*" onChange={onFileChange} className="opacity-0 w-0 h-0 appearance-none" />
-                    <p className='text-sm lg:text-base'><p className="font_urbanist_medium">Welcome {ifExists(user.firstname)} !</p>Save your address details and phone number here for easy and fast in delivery process in the future.</p>
+                    <p className='text-sm lg:text-base'><p className="font_urbanist_medium">Welcome {user.firstname || user.username} !</p>Save your address details and phone number here for easy and fast in delivery process in the future.</p>
                 </div>
             </nav>
-            {props.children}
+            {loading ? <div className="w-full py-40 flex justify-center"><Spinner forBtn variant="border-black" /></div> : children}
         </section>
-    </main >
+    </main>;
+    else return
 }

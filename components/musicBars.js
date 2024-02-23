@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import styles from "@/styles/muscibars.module.css"
 
 export default function MusicBars() {

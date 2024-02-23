@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import Button from '../buttons/simple_btn'
 import useWallet from '@/hooks/useWallet';
 import Image from 'next/image'

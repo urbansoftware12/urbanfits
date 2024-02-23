@@ -55,5 +55,4 @@ const CouponSchema = new mongoose.Schema({
 }, { timestamps: true })
 
 CouponSchema.index({ expiration_date: 1 }, { expireAfterSeconds: 0 });
-
-module.exports = mongoose.models.Coupon || mongoose.model("Coupon", CouponSchema)
+export default mongoose.models.Coupon || mongoose.model("Coupon", CouponSchema)

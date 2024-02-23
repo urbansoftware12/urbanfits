@@ -1,4 +1,4 @@
-import React from 'react'
+import { useEffect } from 'react'
 import Head from 'next/head'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
@@ -15,7 +15,7 @@ import {
     HeartNotifyIcon
 } from '@/public/accountIcons'
 import Image from 'next/image'
-const EmptyInboxImg = "https://urban-fits.s3.eu-north-1.amazonaws.com/website-copyrights/empty-inbox.png"
+const EmptyInboxImg = process.env.NEXT_PUBLIC_BASE_IMG_URL + "/website-copyrights/empty-inbox.webp"
 
 const NoNotificationSection = () => {
     return <section className="w-full h-full flex flex-col mid:items-center mid:justify-center items-center gap-y-4 pt-[40%] mid:pt-0">
@@ -33,7 +33,9 @@ const Option = (props) => {
             {props.icon}
             {props.children}
         </span>
-        <i className="arrow material-symbols-outlined text-lg text-gray-600 transition-all">chevron_right</i>
+        <svg xmlns="http://www.w3.org/2000/svg" width="5" height="11" viewBox="0 0 5 11" fill="none">
+            <path d="M0.0809833 10.2834C0.131883 10.3634 0.215502 10.4252 0.306394 10.4543C0.520898 10.5234 0.666323 10.4434 1.01898 10.0471C1.18258 9.86533 1.39345 9.64356 1.48798 9.55267C1.5825 9.46178 2.06241 8.93825 2.54959 8.38926C3.0404 7.84028 3.7639 7.02953 4.16018 6.58963C4.95276 5.70617 5.0509 5.5571 4.98183 5.32806C4.93822 5.19353 4.29833 4.4446 3.69118 3.82653C3.57122 3.70656 3.0913 3.18303 2.6223 2.66314C2.1533 2.14324 1.68067 1.62696 1.56433 1.51789C1.45162 1.40881 1.21894 1.1616 1.04443 0.968922C0.669958 0.554458 0.524533 0.470815 0.306394 0.54353C0.0409911 0.630815 -0.078985 0.939815 0.055534 1.19796C0.110069 1.30339 1.42254 2.77221 1.48434 2.79764C1.49889 2.80492 1.69885 3.01214 1.92425 3.26299C2.1533 3.51385 2.42234 3.80106 2.52414 3.89924C2.73864 4.11374 3.89479 5.39349 3.93115 5.45531C3.95293 5.49892 2.21511 7.45127 1.52797 8.15295C0.986258 8.7092 0.11734 9.67992 0.055534 9.79989C-0.0244503 9.95986 -0.0171789 10.138 0.0809833 10.2834Z" fill="black" />
+        </svg>
     </Link>
     else return <Link href={props.href} className={`${route === props.href ? 'active_bg text-white lg:text-black active' : 'bg-white text-black'} ${props.unseen ? "border border-black fa-bounce" : null} shadow-md flex justify-center lg:justify-between items-center px-4 py-1 mx-2 lg:m-0 lg:py-5 whitespace-nowrap lg:border-b lg:border-[#F5F5F5] rounded-full lg:rounded text-sm lg:text-base`}>
         {props.children}
@@ -51,23 +53,22 @@ export const NotificationItem = ({ notific, key, marginClass }) => {
     </div>
 }
 
-export const updateNotificationStatus = async (user_id, category) => {
+export const updateNotificationStatus = async (category) => {
     try {
-        const { data } = await axios.put(`${process.env.HOST}/api/user/notifications/update-status?user_id=${user_id}&category=${category}`)
-        console.log(data)
+        await axios.put(`${process.env.NEXT_PUBLIC_HOST}/api/user/notifications/update-status?category=${category}`)
     } catch (error) { console.log(error) }
 }
 
 export default function NotificationInbox(props) {
     const router = useRouter()
-    const { user, notifications, getNotifications } = useUser()
+    const { user, isLoggedIn, notifications, getNotifications } = useUser();
 
-    React.useEffect(() => {
+    useEffect(() => {
         if (!notifications.length) getNotifications()
     }, [])
 
-    if (!user) return <Error403 />
-    if (window.matchMedia('(min-width: 760px)').matches) return <>
+    if (!user && !isLoggedIn()) return <Error403 />
+    if (user && window.matchMedia('(min-width: 760px)').matches) return <>
         <Head><title>Notificatoins Inbox - Urban Fits</title></Head>
         <main className="bg-gray-50 w-full min-h-layout_height md:px-7 lg:px-14 xl:px-20 py-16 font_urbanist">
             <div className="flex flex-col lg:flex-row justify-between">
@@ -90,7 +91,7 @@ export default function NotificationInbox(props) {
             </div>
         </main >
     </>
-    else return <>
+    else if (user) return <>
         <Head><title>Notificatoins Inbox - Urban Fits</title></Head>
         <section className={`w-full p-4 ${router.pathname === "/user/inbox" ? null : "border-b border-gray-50"} flex justify-between items-center`}>
             <button onClick={() => router.back()} className='fa-solid fa-chevron-left text-xl'></button>
