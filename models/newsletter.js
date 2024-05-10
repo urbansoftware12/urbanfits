@@ -34,8 +34,7 @@ const NewsletterSchema = new mongoose.Schema({
             return value.toString();
         },
         default: 'guest'
-    },
-
+    }
 }, { timestamps: true })
 
 export default mongoose.models.Newsletter || mongoose.model("Newsletter", NewsletterSchema)

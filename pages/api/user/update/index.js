@@ -5,9 +5,8 @@ import { sendNotification } from "@/utils/send_notification"
 import StandardApi from "@/middlewares/standard_api"
 
 const UpdateUser = async (req, res) => StandardApi(req, res, { method: "PUT" }, async () => {
-    const id = req.user._id;
     await ConnectDB()
-    let user = await User.findByIdAndUpdate(id, req.body, { new: true, lean: true });
+    let user = await User.findByIdAndUpdate(req.user._id, req.body, { new: true, lean: true });
 
     SetSessionCookie(req, res, {
         _id: user._id,

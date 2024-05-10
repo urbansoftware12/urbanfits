@@ -2,7 +2,6 @@ import Notification from "@/models/notification";
 import AdminNotific from "@/models/admin_notifications";
 import { pusherServer, beamsServer } from "./pusher";
 
-const isProdEnv = process.env.NEXT_PUBLIC_DEV_ENV === "PRODUCTION";
 export const sendNotification = async (user_id, params, options = {}) => {
     const {
         notify = true,
@@ -40,7 +39,7 @@ export const sendNotification = async (user_id, params, options = {}) => {
             notification: {
                 ...notificObj,
                 hide_notification_if_site_has_focus: false,
-                deep_link: isProdEnv? "https://st.urbanfits.ae": "http://127.0.0.1:3000",
+                deep_link: process.env.NEXT_PUBLIC_HOST,
             }
         }
         // apns: {
@@ -59,7 +58,7 @@ export const sendAdminNotification = async (notific_data) => {
             await AdminNotific.findByIdAndDelete(oldestNotification._id)
         }
     })()
-    const newNotification = await AdminNotific.create(notific_data);
+    const newNotification = (await AdminNotific.create(notific_data)).toObject();
 
     pusherServer.trigger("admin-channel", "new-notification", newNotification)
 
@@ -68,8 +67,7 @@ export const sendAdminNotification = async (notific_data) => {
             notification: {
                 title: newNotification.data?.title,
                 body: newNotification.data?.msg,
-                deep_link: isProdEnv? "https://admin.urbanfits.ae": "http://127.0.0.1:3000",
-                // deep_link: newNotification.data?.href || "https://admin.urbanfits.ae",
+                deep_link: process.env.NEXT_PUBLIC_HOST,
             }
         }
     })

@@ -1,15 +1,16 @@
-import { useEffect, useState } from 'react'
-import Link from 'next/link'
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import Image from 'next/image';
-import useUser from '@/hooks/useUser'
-import useWallet from '@/hooks/useWallet'
-import Button from '@/components/buttons/simple_btn'
-import BounceLoader from '@/components/loaders/bounceLoader'
-import toaster from '@/utils/toast_function'
-import LinkBtn from '@/components/buttons/link_btn'
+import useUser from '@/hooks/useUser';
+import useWallet from '@/hooks/useWallet';
+import useLanguage from '@/hooks/useLanguage';
+import { earnPointsPage as ufPointsLang } from '@/locales';
+import Button from '@/components/buttons/simple_btn';
+import BounceLoader from '@/components/loaders/bounceLoader';
+import toaster from '@/utils/toast_function';
+import LinkBtn from '@/components/buttons/link_btn';
 import { DefaultTasks } from '@/uf.config';
 const emptyWishlist = process.env.NEXT_PUBLIC_BASE_IMG_URL + '/website-copyrights/emptyWishlist.webp';
-import axios from "axios";
 
 const UfPointsNames = { daily_checkin: "Daily Checkin", prize_wheel: "Prize Wheel", signup: "Sign Up", place_order: "Place Order", uf_task: "UF Task", additional_reward: "Other", deduction: "Deduction" };
 const CheckShell = ({ dayCode, day, history }) => {
@@ -21,9 +22,7 @@ const CheckShell = ({ dayCode, day, history }) => {
         const serverDate = new Date(record.createdAt);
 
         if (serverDate >= currentWeekStart.setHours(0, 0, 0, 0) && serverDate <= today.setHours(23, 59, 59, 999)) {
-            if (serverDate.getDay() === dayCode) {
-                return record;
-            }
+            if (serverDate.getDay() === dayCode) return record;
         }
     })[0] : null
 
@@ -38,19 +37,21 @@ const CheckShell = ({ dayCode, day, history }) => {
     </div>
 }
 
-const TaskComp = ({ user, task, uploadUfTaskImg, setTasks }) => {
+const TaskComp = ({ user, task, uploadUfTaskImg, setTasks, locale }) => {
     const { name, type, title, description, link, need_image, image_submitted, completed } = task
     const disableAction = user && name == "sign_up" ? true : (!user && name !== "sign_up" ? true : false)
-    const [ssLoading, setSsLoading] = useState(false)
+    const [ssLoading, setSsLoading] = useState(false);
+    const goDic = { en: "Go", ar: "اذهب" }
 
     const onUploadSS = async (e) => {
         const { name } = e.target;
         const file = e.target.files[0];
         setSsLoading(true)
-        if (file) uploadUfTaskImg(name, file, (data) => { setTasks(data.tasks.tasks); setSsLoading(false) })
-        else toaster("info", "Please upload a valid image.")
+        if (file) await uploadUfTaskImg(name, file, data => setTasks(data.tasks.tasks))
+        else toaster("info", "Please upload a valid image.");
+        setSsLoading(false);
     }
-    const actionBtnValue = name !== "sign_up" ? <i className="fa-solid fa-lock text-gotham-black mx-1.5 text-sm" /> : "Go"
+    const actionBtnValue = name !== "sign_up" ? <i className="fa-solid fa-lock text-gotham-black mx-1.5 text-sm" /> : goDic[locale]
 
     if (user?._id) return <div key={name} className="w-full border rounded-lg flex justify-between items-center px-4 py-2">
         <div className="flex flex-col text-sm lg:text-base text-gray-400">
@@ -64,7 +65,7 @@ const TaskComp = ({ user, task, uploadUfTaskImg, setTasks }) => {
                     <input onChange={onUploadSS} className='appearance-none hidden' type="file" accept="image/*" name={name} id={name} />
                 </label> : null}
                 <span className={`p-2 ${completed || name == "sign_up" ? "bg-gold-land text-white" : "bg-gray-100 text-black"} text-sm lg:text-base rounded-md`}>
-                    {completed || name === "sign_up" ? <i title='completed' className="fa-solid fa-check mx-1.5 text-sm" /> : <Link target={type == "social" ? "_blank" : ''} href={link || '#'}>Go</Link>}
+                    {completed || name === "sign_up" ? <i title='completed' className="fa-solid fa-check mx-1.5 text-sm" /> : <Link target={type == "social" ? "_blank" : ''} href={link || '#'}>{goDic[locale]}</Link>}
                 </span>
             </div>}
     </div>
@@ -82,12 +83,15 @@ const TaskComp = ({ user, task, uploadUfTaskImg, setTasks }) => {
 }
 
 export default function EarnUfPoints() {
-    const { points, formatPrice, walletLoading, getWeeklyCheckinHistory, spinUfWheel, getUfBalance, getUfTasks, getUfHistory, uploadUfTaskImg } = useWallet()
-    const { user, isLoggedIn } = useUser()
-    const [weeklyHistory, setWeeklyHistory] = useState()
-    const [loading, setLoading] = useState(false)
-    const [history, setHistory] = useState([])
-    const [tasks, setTasks] = useState(DefaultTasks)
+    const { walletLoading, getWeeklyCheckinHistory, spinUfWheel, getUfBalance, getUfTasks, getUfHistory, uploadUfTaskImg } = useWallet()
+    const { user, isLoggedIn, checkIn, userLoading } = useUser();
+    const { locale } = useLanguage();
+    const [weeklyHistory, setWeeklyHistory] = useState();
+    const [loading, setLoading] = useState(false);
+    const [history, setHistory] = useState([]);
+    const [tasks, setTasks] = useState(DefaultTasks);
+    const checkedIn = !user?._id ? true : new Date(user.last_checkin).getTime() > new Date().getTime();
+    const langObj = ufPointsLang[locale];
 
     async function spinAndStopAtValue(value, msg) {
         const pathElements = {
@@ -125,12 +129,10 @@ export default function EarnUfPoints() {
                     wheel.style.transition = 'none';
                     wheel.style.transform = `rotate(${rotationAngle}deg)`;
                     toaster("success", msg || `Congratulations! You won ${value} points.`)
+                    res(1)
                 }, spinDuration * spins * 1000);
-                res(1)
             })
-        } else {
-            console.log("Invalid value. No corresponding path found.");
-        }
+        } else console.log("Invalid value. No corresponding path found.");
     }
 
     const calculateTimeLeft = (targetDate) => {
@@ -161,11 +163,11 @@ export default function EarnUfPoints() {
         const currentWeekStart = new Date(today);
         currentWeekStart.setDate(today.getDate() - (today.getDay() + 6) % 7);
 
-        const checkedinDays = weeklyHistory ? weeklyHistory.filter((record) => {
+        const checkedinDays = weeklyHistory ? weeklyHistory.filter(record => {
             const serverDate = new Date(record.createdAt);
             if (serverDate >= currentWeekStart.setHours(0, 0, 0, 0) && serverDate <= today.setHours(23, 59, 59, 999)) return record;
         }) : null
-        return checkedinDays?.length || 0
+        return checkedinDays?.length || 0;
     }
 
     const [timeLeft, setTimeLeft] = useState(calculateTimeLeft(user?.uf_wallet?.next_uf_spin));
@@ -174,7 +176,7 @@ export default function EarnUfPoints() {
         if (!user) { return }
         (async () => {
             await getWeeklyCheckinHistory(setWeeklyHistory)
-            await getUfTasks((data) => setTasks(data.tasks.tasks))
+            await getUfTasks((data) => setTasks(data?.tasks?.tasks || []))
             getUfHistory((history_docs) => setHistory(history_docs), 5);
         })()
         const timer = setInterval(() => {
@@ -195,8 +197,8 @@ export default function EarnUfPoints() {
             return console.log("some error occured as the spin value was undefined.")
         }
         await spinAndStopAtValue(data.reward.toString(), data?.msg)
-        setLoading(false)
         getUfBalance()
+        setLoading(false)
     }
 
     return <>
@@ -204,25 +206,25 @@ export default function EarnUfPoints() {
             <section className="w-full mb-4 flex flex-col lg:flex-row gap-4">
                 <nav className="bg-white w-full lg:w-1/2 min-h-[20rem] px-4 py-4 mid:px-20 mid:py-4 lg:p-6 lg:px-8 flex flex-col justify-between rounded-lg">
                     <section className="w-full">
-                        <div className="bg-gray-100 w-full flex justify-center py-1.5 mid:py-2 text-sm lg:text-base text-[#FF4A60] font_urbanist_medium rounded-lg">Every 100 UF-Points are equal to {formatPrice(parseFloat(process.env.NEXT_PUBLIC_UF_POINT_RATE) * 100)}</div>
+                        <div className="bg-gray-100 w-full flex justify-center py-1.5 mid:py-2 text-sm lg:text-base text-[#FF4A60] font_urbanist_medium rounded-lg">{langObj.pointsWorth}</div>
                         <div className="w-full mt-4 lg:mt-10 flex justify-between items-center">
-                            <span className="text-lg lg:text-[26px] font_urbanist_bold text-gotham-black">Daily check-in Rewards</span>
-                            {!user && <button className='font_urbanist_medium text-xs md:text-sm px-4 py-1 lg:py-2 lg:px-5 rounded-full bg-gray-50'><Link href="/auth/login">Login</Link> / <Link href="/auth/signup">Signup</Link></button>}
+                            <span className="text-lg lg:text-[26px] font_urbanist_bold text-gotham-black">{langObj.checkinRewards}</span>
+                            {!user && <button className='font_urbanist_medium text-xs md:text-sm px-4 py-1 lg:py-2 lg:px-5 rounded-full bg-gray-50'><Link href="/auth/login">{langObj.login}</Link> / <Link href="/auth/signup">{langObj.signup}</Link></button>}
                         </div>
                     </section>
                     <div className="w-full flex justify-between">
-                        <CheckShell history={weeklyHistory} dayCode={1} day="Mon" />
-                        <CheckShell history={weeklyHistory} dayCode={2} day="Tue" />
-                        <CheckShell history={weeklyHistory} dayCode={3} day="Wed" />
-                        <CheckShell history={weeklyHistory} dayCode={4} day="Thu" />
-                        <CheckShell history={weeklyHistory} dayCode={5} day="Fri" />
-                        <CheckShell history={weeklyHistory} dayCode={6} day="Sat" />
-                        <CheckShell history={weeklyHistory} dayCode={0} day="Sun" />
+                        <CheckShell history={weeklyHistory} dayCode={1} day={langObj.weekDays.day1} />
+                        <CheckShell history={weeklyHistory} dayCode={2} day={langObj.weekDays.day2} />
+                        <CheckShell history={weeklyHistory} dayCode={3} day={langObj.weekDays.day3} />
+                        <CheckShell history={weeklyHistory} dayCode={4} day={langObj.weekDays.day4} />
+                        <CheckShell history={weeklyHistory} dayCode={5} day={langObj.weekDays.day5} />
+                        <CheckShell history={weeklyHistory} dayCode={6} day={langObj.weekDays.day6} />
+                        <CheckShell history={weeklyHistory} dayCode={0} day={langObj.weekDays.day7} />
                     </div>
                     <hr />
                     <div className="w-full flex justify-between items-center font_urbanist_medium text-sm lg:text-base">
-                        Checked in {getCheckedinDays()} days
-                        <label className={`switch w-[45px] md:w-11 h-6 ${!user && "pointer-events-none opacity-50"}`}><input type="checkbox" name='active_by_email' /><span className="slider"></span></label>
+                        {langObj.checkedin} {getCheckedinDays()} {langObj.timeUnits.days}
+                        {isLoggedIn() && <button type='button' onClick={checkIn} disabled={userLoading} className={`${userLoading && "pointer-events-none animate-pulse"} px-4 py-1.5 rounded-3xl text-xs lg:text-sm ${checkedIn ? "bg-gray-200 text-black" : "bg-pinky text-white"}`}>{checkedIn ? langObj.checkedin : langObj.checkinBtn}</button>}
                     </div>
                 </nav>
                 <nav className="bg-white w-full lg:w-1/2 p-4 mid:px-20 lg:px-4 xl:py-6 flex flex-col lg:flex-row rounded-lg gap-3 mid:gap-8">
@@ -254,37 +256,32 @@ export default function EarnUfPoints() {
                         <div className={`${!user && "opacity-50"} w-full mid:w-3/5 lg:w-full flex justify-around items-center`}>
                             <span className="flex flex-col items-center font_urbanist_medium text-xs">
                                 <span className="bg-gray-100 w-9 flex justify-center mb-1 py-2 font_urbanist_medium text-sm lg:text-base">{timeLeft.days || "00"}</span>
-                                Days
+                                {langObj.timeUnits.days}
                             </span>
                             <span className="flex flex-col items-center font_urbanist_medium text-xs">
                                 <span className="bg-gray-100 w-9 flex justify-center mb-1 py-2 font_urbanist_medium text-sm lg:text-base">{timeLeft.hours || "00"}</span>
-                                Hours
+                                {langObj.timeUnits.hours}
                             </span>
                             <span className="flex flex-col items-center font_urbanist_medium text-xs">
                                 <span className="bg-gray-100 w-9 flex justify-center mb-1 py-2 font_urbanist_medium text-sm lg:text-base">{timeLeft.minutes || "00"}</span>
-                                Mins
+                                {langObj.timeUnits.mins}
                             </span>
                             <span className="flex flex-col items-center font_urbanist_medium text-xs">
                                 <span className="bg-gray-100 w-9 flex justify-center mb-1 py-2 font_urbanist_medium text-sm lg:text-base">{timeLeft.seconds || "00"}</span>
-                                Secs
+                                {langObj.timeUnits.secs}
                             </span>
                         </div>
                     </div>
                     <div className="w-full lg:w-1/2 h-full lg:h-auto flex flex-col justify-between ">
                         <ol className='text-[13px]'>
-                            <h2 className="font_urbanist_bold text-xl mt-7 md:mt-0 mb-2">Weekly Fortune Spinner</h2>
-                            <li>1. Only available on URBAN FITS website <Link href="https://www.urbanfits.ae">https://www.urbanfits.ae</Link></li>
-                            <li>2. 10 Points cost per spin</li>
-                            <li>3. Available only 3 days in a week after cooldown (each).</li>
-                            <li>4. Each spin reward is only valid for 7 days.</li>
-                            <li>5. Your UF-Points and vouchers will be automatically added yo your account wallet.</li>
-                            <li>6. On getting a "Try Again", you can do extra spin free of cost.</li>
+                            <h2 className="font_urbanist_bold text-xl mt-7 md:mt-0 mb-2">{langObj.prizeWheelTitle}</h2>
+                            {langObj.prizeWheelRules.map((rule, index) => <li key={index}>{rule}</li>)}
                         </ol>
-                        {user ? <div className='w-full'><LinkBtn href="/user/uf-wallet/history" bg="bg-gray-100" my="my-3" text="black" classes="w-full" font='font_urbanist_medium'>My Prize History</LinkBtn>
-                            <Button loading={loading} disabled={user?.uf_wallet.last_spin_reward && new Date() < new Date(user.uf_wallet?.next_uf_spin)} onClick={spinPrizeWheel} classes="w-full" my="0">{user.uf_wallet?.last_spin_reward ? "Lucky Draw (-10 pts)" : "Free Lucky Draw"}</Button></div>
+                        {user ? <div className='w-full'><LinkBtn href="/user/uf-wallet/history" bg="bg-gray-100" my="my-3" text="black" classes="w-full" font='font_urbanist_medium'>{langObj.prizeHistoryBtn}</LinkBtn>
+                            <Button loading={loading} disabled={user?.uf_wallet.last_spin_reward && new Date() < new Date(user.uf_wallet?.next_uf_spin) || loading} onClick={spinPrizeWheel} classes="w-full" my="0">{user.uf_wallet?.last_spin_reward ? langObj.luckyDrawBtn : langObj.freeLuckyDrawBtn}</Button></div>
                             : <>
-                                <LinkBtn href="/auth/login" bg="bg-gray-100" my="my-3" text="black" classes="w-full" font='font_urbanist_medium'>Log in</LinkBtn>
-                                <LinkBtn href="/auth/signup" classes="w-full" my="0">Sign up</LinkBtn>
+                                <LinkBtn href="/auth/login" bg="bg-gray-100" my="my-3 lg:my-0" text="black" classes="w-full" font='font_urbanist_medium'>{langObj.login}</LinkBtn>
+                                <LinkBtn href="/auth/signup" classes="w-full" my="0">{langObj.signup}</LinkBtn>
                             </>
                         }
                     </div>
@@ -292,25 +289,25 @@ export default function EarnUfPoints() {
             </section>
 
             <section className="bg-white w-full mb-4 px-4 py-6 mid:px-6 mid:p-6 lg:py-10 lg:px-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 rounded-lg gap-4">
-                <h1 className="col-span-full mb-6 font_urbanist_bold text-lg md:text-xl lg:text-[26px]">Complete tasks to win more UF-Points</h1>
-                {tasks.map(task => <TaskComp user={user} uploadUfTaskImg={uploadUfTaskImg} task={task} setTasks={setTasks} />)}
+                <h1 className="col-span-full mb-6 font_urbanist_bold text-lg md:text-xl lg:text-[26px]">{langObj.ufTaskTitle}</h1>
+                {tasks.length && tasks.map(task => <TaskComp locale={locale} user={user} uploadUfTaskImg={uploadUfTaskImg} task={task} setTasks={setTasks} />)}
             </section>
             <section id='prize_wheel_history' className="bg-white w-full mb-4 px-4 py-6 mid:p-6 lg:p-10 lg:px-8 rounded-lg gap-4 overflow-x-auto scrollbar_x">
                 <div className="w-full mb-6 flex justify-between items-center">
-                    <h2 id='points_history' className="col-span-full font_urbanist_bold text-lg md:text-xl lg:text-[26px]">Points History</h2>
+                    <h2 id='points_history' className="col-span-full font_urbanist_bold text-lg md:text-xl lg:text-[26px]">{langObj.ptsHistoryTitle}</h2>
                     {isLoggedIn() ? <div className="flex gap-x-2">
-                        <Link href="/user/uf-wallet/history" className="px-2 lg:px-4 py-0.5 lg:py-1 text-xs lg:text-sm text-gotham-black bg-gray-100 rounded-full">View full history</Link>
-                        <button onClick={() => getUfHistory((history_docs) => setHistory(history_docs), 5)} disabled={walletLoading} className="px-2 lg:px-4 py-0.5 lg:py-1 text-[10px] md:text-xs lg:text-sm text-white bg-pinky rounded-full">Refresh history&nbsp;&nbsp; <i className={`fa-solid fa-rotate-right text-xs ${walletLoading && "fa-spin"}`} /></button>
+                        <Link href="/user/uf-wallet/history" className="px-2 lg:px-4 py-0.5 lg:py-1 text-xs lg:text-sm text-gotham-black bg-gray-100 rounded-full">{langObj.viewHistoryBtn}</Link>
+                        <button onClick={() => getUfHistory((history_docs) => setHistory(history_docs), 5)} disabled={walletLoading} className="px-2 lg:px-4 py-0.5 lg:py-1 text-[10px] md:text-xs lg:text-sm text-white bg-pinky rounded-full">{langObj.refreshHistoryBtn}&nbsp;&nbsp; <i className={`fa-solid fa-rotate-right text-xs ${walletLoading && "fa-spin"}`} /></button>
                     </div> : null}
                 </div>
                 {walletLoading && <div className="w-full my-8 flex justify-center"><BounceLoader /></div>}
                 {history?.length ? <div className="w-full mb-4 grid grid-cols-5 place-items-center text-[10px] md:text-xs lg:text-base font_urbanist_bold">
-                    <span className="place-self-start hidden lg:inline">Last 5 Transactions</span>
-                    <span className="place-self-start md:hidden">Last 5</span>
-                    <span>Earned</span>
-                    <span>Spent</span>
-                    <span>Expires At</span>
-                    <span>Total Balance</span>
+                    <span className="place-self-start hidden lg:inline">{langObj.transactionColumns.item1}</span>
+                    <span className="place-self-start md:hidden">{langObj.transactionColumns.item1}</span>
+                    <span>{langObj.transactionColumns.item2}</span>
+                    <span>{langObj.transactionColumns.item3}</span>
+                    <span>{langObj.transactionColumns.item4}</span>
+                    <span>{langObj.transactionColumns.item5}</span>
                 </div> : null}
 
                 {user?.email && history?.length ? history.map((record, index) => {
@@ -325,7 +322,7 @@ export default function EarnUfPoints() {
                     return <section key={index} className="bg-white border-b border-b-gray-300 grid grid-cols-5 text-[10px] md:text-sm">
                         <div className="w-full flex items-center">
                             <span className="mr-8 py-4 flex flex-col text-[8px] lg:text-xs">
-                                <h6 className="font_copper uppercase text-xs lg:text-sm">{UfPointsNames[record.source]}</h6>
+                                <h6 className="font_copper uppercase text-[10px] md:text-xs lg:text-sm">{UfPointsNames[record.source]}</h6>
                                 {createdDate.getDate() + "/" + (createdDate.getMonth() + 1) + "/" + createdDate.getFullYear()}
                             </span>
                         </div>
@@ -336,15 +333,15 @@ export default function EarnUfPoints() {
                     </section>
                 }) : <div id='prize_wheel_history' className='w-full h-[50vh] col-span-full flex flex-col items-center justify-center gap-4 text-xs lg:text-sm font-semibold'>
                     <Image width={200} height={200} className="w-1/5 lg:w-1/6" src={emptyWishlist} alt="Empty Transaction" />
-                    No Transation history found
+                    {langObj.noTransHistory}
                 </div>}
             </section>
             <section className="bg-white w-full mb-4 lg:mb-6 px-4 py-6 mid:p-6 lg:py-10 lg:px-8 rounded-lg">
-                <h4 className="col-span-full mb-4 font_urbanist_bold text-lg md:text-xl lg:text-[26px]">Rules for Check-in</h4>
+                <h4 className="col-span-full mb-4 font_urbanist_bold text-lg md:text-xl lg:text-[26px]">{langObj.checkinRulesTitle}</h4>
                 <ol>
-                    <li>1. Sign in on the “Urban Fits” page on the website every day to receive UF-Points, the UF-Points accumulates over the week and automatically expires each Sunday at 24:00. You can check your UF-Points expiration date in “My Account”. Remember to use your UF-Points before it expires!</li>
-                    <li>2. Limitations of UF-Points Usage: On the phone user interface and the web interface, the UF-Points received in a designated region can only be used for orders in that same region;</li>
-                    <li>3. Check Your UF-Points <Link href="/user/uf-wallet" className='underline'>here</Link>.</li>
+                    <li>{langObj.checkinRules.rule1}</li>
+                    <li>{langObj.checkinRules.rule2}</li>
+                    <li>{langObj.checkinRules.rule3_1} <Link href="/user/uf-wallet" className='underline'>{langObj.checkinRules.rule3_2}</Link>.</li>
                 </ol>
             </section>
         </main>

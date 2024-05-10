@@ -7,7 +7,6 @@ import Image from 'next/image'
 import Tooltip from '@/components/tooltip'
 import toaster from '@/utils/toast_function'
 import useUser from '@/hooks/useUser'
-import { DeleteCookie } from '@/utils/cyphers'
 import axios from 'axios'
 import * as Yup from 'yup'
 import { useFormik } from 'formik'
@@ -15,7 +14,7 @@ import google_logo from '@/public/logos/google-logo.svg'
 
 export default function ForgotPassword() {
     const router = useRouter();
-    const { isLoggedIn, userLoading, signUpWithGoogle } = useUser();
+    const { userLoading, signUpWithGoogle } = useUser();
     const [otp, setOtp] = useState('');
     const [otpId, setOtpId] = useState(null);
     const [resendOption, setResendOption] = useState(
@@ -24,25 +23,22 @@ export default function ForgotPassword() {
         </div>)
 
     useEffect(() => {
+        const { google } = window;
         if (!google?.accounts) { return };
         const googleClient = google.accounts.id;
         googleClient.initialize({
             client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
-            callback: googleSession => signUpWithGoogle(googleSession.credential, router)
+            use_fedcm_for_prompt: true,
+            ux_mode: "popup",
+            callback: googleSession => signUpWithGoogle(googleSession.credential, null, router)
         });
+        google.accounts.id.renderButton(
+            document.getElementById("signin_with_google_btn"),
+            { width: "1000px", size: "large" }
+        );
 
         return () => googleClient.cancel()
     }, []);
-
-    const handleSignIn = async () => {
-        if (!google?.accounts) return
-        if (isLoggedIn()) return toaster("info", "You are already singned in")
-        DeleteCookie("g_state");
-        google.accounts.id.prompt((res) => {
-            console.log(res);
-            if (res.j && res.j == "opt_out_or_no_session") toaster("info", "You dont have any google account to sign in with.")
-        });
-    }
 
     const { values, errors, touched, handleBlur, handleChange, handleReset, handleSubmit } = useFormik({
         initialValues: { email: '', password: '', new_password: '' },
@@ -124,9 +120,10 @@ export default function ForgotPassword() {
                         <span className="w-2/5 h-px bg-gray-200"></span>
                     </div>
                     <Link href='/auth/login' className='hidden lg:block underline text-xs md:text-sm'><h1 className='w-full text-center' >Sign in with an exiting account</h1></Link>
-                    <button type='button' onClick={handleSignIn} name='google' className="lg:hidden group w-full h-12 my-4 py-2 px-2 flex justify-center items-center bg-gray-50 text-lg border border-gray-200 rounded-full hover:shadow-xl transition">
+                    <button type='button' name='google' onClick={() => document.querySelector("#signin_with_google_btn").click()} className="relative group cursor-default w-full h-12 my-4 py-2 px-2 flex justify-center items-center bg-gray-50 text-lg border border-gray-200 rounded-full hover:shadow-xl transition">
+                        <span id="signin_with_google_btn" className='absolute left-1/2 -translate-x-1/2 opacity-0'></span>
                         <Image src={google_logo} width={50} height={50} className='w-6 md:w-8 mr-3' alt="google" />
-                        <span className='max-w-0 whitespace-nowrap overflow-hidden transition-all duration-500 group-hover:max-w-[10rem]'>Sign Up with&nbsp;</span>
+                        <span className='max-w-0 whitespace-nowrap overflow-hidden transition-all duration-500 group-hover:max-w-[8rem]'>Sign Up with&nbsp;</span>
                         Google
                     </button>
                 </section>

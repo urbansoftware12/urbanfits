@@ -7,11 +7,11 @@ import { generateRandomInt, EncryptOrDecryptData } from "@/utils/cyphers.js"
 import StandardApi from "@/middlewares/standard_api";
 
 const forgotPassword = async (req, res) => StandardApi(req, res, { method: "POST", verify_user: false }, async () => {
-    const { email, new_password } = req.body
+    const { email, new_password } = req.body;
     if (!email || !new_password) return res.status(400).json({ success: false, msg: "All valid parameters are required. Body Parameters: email, new_password" })
     await ConnectDB()
 
-    let user = await User.findOne().or([{ email }, { username: email }])
+    let user = await User.findOne().or([{ email }, { username: email }]).select("+password").lean()
     if (!user) return res.status(404).json({ success: false, msg: "You don't have an account with this Email or Username" })
     if (user.register_provider != "urbanfits") return res.status(404).json({ success: false, msg: "This email is linked with Google." })
     const currentPassword = EncryptOrDecryptData(user.password)

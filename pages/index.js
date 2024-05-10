@@ -2,17 +2,20 @@ import { useState, useEffect } from "react";
 import Head from "next/head";
 import dynamic from "next/dynamic";
 const HomeCarousel = dynamic(() => import('@/components/carousels/homeCarousel'));
-// const HomeCarousel2 = dynamic(() => import('@/components/carousels/homeCarousel2'));
 import SkeletonRow from "@/components/cards/card-skeleton";
+import useLanguage from "@/hooks/useLanguage";
 import Link from "next/link";
 import ListingShopSection from "@/components/listingShop_section";
 import OfferCard from "@/components/cards/offerCard";
 import Shoppingcard from "@/components/cards/shoppingcard";
 import axios from "axios";
+import { home as homeLang } from "@/locales";
 
 export default function Home() {
     const [indexContent, setIndexContent] = useState(null);
     const [indexLoading, setIndexLoading] = useState(true);
+    const { locale } = useLanguage();
+    const langObj = homeLang[locale];
 
     useEffect(() => {
         (async () => {
@@ -33,28 +36,28 @@ export default function Home() {
                 </section>
                 {/* Latest Arrivals */}
                 {indexContent?.latestArrivals?.length ? <section>
-                    <h2 className="w-full font_urbanist_bold text-center text-pinky text-lg md:xl lg:text-2xl">Urban Fits Latest Arrivals</h2>
+                    <h2 className="w-full font_urbanist_bold text-center text-pinky text-lg md:xl lg:text-2xl">{langObj.latestArrival}</h2>
                     <div className="box_2 w-full px-5 md:px-7 lg:px-14 xl:px-20 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 lg:gap-2 xl:gap-4 2xl:gap-14">
                         {indexContent?.latestArrivals.map((product, index) => {
                             if (window.matchMedia('(max-width: 760px)').matches && index > 3) return
-                            if (window.matchMedia('(min-width: 760px) and (max-width: 1024px)').matches && index > 2) return
+                            else if (window.matchMedia('(min-width: 760px) and (max-width: 1024px)').matches && index > 2) return
                             else if (index > 4) return
-                            return <Shoppingcard key={"latest_arrivals" + product._id} margin='0' product={product} />
+                            else return <Shoppingcard key={"latest_arrivals" + product._id} margin='0' product={product} />
                         })}
                     </div>
                 </section> : (indexLoading && <SkeletonRow />)}
                 {/* Collection Section */}
                 <section>
                     <div className="w-full px-5 md:px-7 lg:px-14 xl:px-20 mb-3 md:mb-5 flex justify-between items-center">
-                        <h2 className="font_urbanist_bold text-lg md:xl lg:text-2xl">New Collection</h2>
-                        <Link href='/products/category/64d517f6218f4e9ee6253b18?name=new+collection' className="px-4 py-2 bg-gray-100 text-xs md:text-[15px] rounded-full font_urbanist_medium">See all Collection</Link>
+                        <h2 className="font_urbanist_bold text-lg md:xl lg:text-2xl">{langObj.newCollection}</h2>
+                        <Link href='/products/category/64d517f6218f4e9ee6253b18?name=new+collection' className="px-4 py-2 bg-gray-100 text-xs md:text-[15px] rounded-full font_urbanist_medium">{langObj.visitCollection}</Link>
                     </div>
                     <div className="box_2 w-full px-5 md:px-7 lg:px-14 xl:px-20 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 lg:gap-2 xl:gap-4 2xl:gap-14">
                         {indexContent?.newCollection.map((product, index) => {
                             if (window.matchMedia('(max-width: 760px)').matches && index > 3) return
-                            if (window.matchMedia('(min-width: 760px) and (max-width: 1024px)').matches && index > 2) return
+                            else if (window.matchMedia('(min-width: 760px) and (max-width: 1024px)').matches && index > 2) return
                             else if (index > 4) return
-                            return <Shoppingcard key={"new_collection" + product._id} margin='0' product={product} />
+                            else return <Shoppingcard key={"new_collection" + product._id} margin='0' product={product} />
                         })}
                     </div>
                 </section>
@@ -69,15 +72,15 @@ export default function Home() {
                 {/* Women Collection Section */}
                 <section>
                     <div className="w-full px-5 md:px-7 lg:px-14 xl:px-20 mb-3 md:mb-5 flex justify-between items-center">
-                        <h2 className="font_urbanist_bold text-lg md:xl lg:text-2xl">Urban Fits Women Collection</h2>
-                        <Link href='/products/category/64a59d5816b4c91fa1967b2e?name=women' className="px-4 py-2 bg-gray-100 text-xs md:text-[15px] rounded-full font_urbanist_medium">Shop Women</Link>
+                        <h2 className="font_urbanist_bold text-lg md:xl lg:text-2xl">{langObj.womenCollection}</h2>
+                        <Link href='/products/category/64a59d5816b4c91fa1967b2e?name=women' className="px-4 py-2 bg-gray-100 text-xs md:text-[15px] rounded-full font_urbanist_medium">{langObj.visitCollection}</Link>
                     </div>
                     <div className="box_2 w-full px-5 md:px-7 lg:px-14 xl:px-20 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 lg:gap-2 xl:gap-4 2xl:gap-14">
                         {indexContent?.womenCollection.map((product, index) => {
                             if (window.matchMedia('(max-width: 760px)').matches && index > 3) return
-                            if (window.matchMedia('(min-width: 760px) and (max-width: 1024px)').matches && index > 2) return
+                            else if (window.matchMedia('(min-width: 760px) and (max-width: 1024px)').matches && index > 2) return
                             else if (index > 4) return
-                            return <Shoppingcard key={"women_collection" + product._id} margin='0' product={product} />
+                            else return <Shoppingcard key={"women_collection" + product._id} margin='0' product={product} />
                         })}
                     </div>
                 </section>
@@ -87,15 +90,15 @@ export default function Home() {
                 {/* Men Collection Section */}
                 {indexContent?.menCollection.length ? <section>
                     <div className="w-full px-5 md:px-7 lg:px-14 xl:px-20 mb-3 md:mb-5 flex justify-between items-center">
-                        <h2 className="font_urbanist_bold text-lg md:xl lg:text-2xl">Urban Fits Men Collection</h2>
-                        <Link href='/products/category/649b292762a7c100cfb7207f?name=men' className="px-4 py-2 bg-gray-100 text-xs md:text-[15px] rounded-full font_urbanist_medium">Shop Men</Link>
+                        <h2 className="font_urbanist_bold text-lg md:xl lg:text-2xl">{langObj.menCollection}</h2>
+                        <Link href='/products/category/649b292762a7c100cfb7207f?name=men' className="px-4 py-2 bg-gray-100 text-xs md:text-[15px] rounded-full font_urbanist_medium">{langObj.visitCollection}</Link>
                     </div>
                     <div className="box_2 w-full px-5 md:px-7 lg:px-14 xl:px-20 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 lg:gap-2 xl:gap-4 2xl:gap-14">
                         {indexContent?.menCollection.map((product, index) => {
                             if (window.matchMedia('(max-width: 760px)').matches && index > 3) return
-                            if (window.matchMedia('(min-width: 760px) and (max-width: 1024px)').matches && index > 2) return
+                            else if (window.matchMedia('(min-width: 760px) and (max-width: 1024px)').matches && index > 2) return
                             else if (index > 4) return
-                            return <Shoppingcard key={"men_collection" + product._id} margin='0' product={product} />
+                            else return <Shoppingcard key={"men_collection" + product._id} margin='0' product={product} />
                         })}
                     </div>
                 </section> : (indexLoading && <SkeletonRow />)}
@@ -103,15 +106,15 @@ export default function Home() {
                 {/* Kids Collection Section */}
                 {indexContent?.kidsCollection.length ? <section>
                     <div className="w-full px-5 md:px-7 lg:px-14 xl:px-20 mb-3 md:mb-5 flex justify-between items-center">
-                        <h2 className="font_urbanist_bold text-lg md:xl lg:text-2xl">Urban Fits Kids Collection</h2>
-                        <Link href='/products/category/64d4dfa643c643cc9c60c672?name=kids' className="px-4 py-2 bg-gray-100 text-xs md:text-[15px] rounded-full font_urbanist_medium">Shop Kids</Link>
+                        <h2 className="font_urbanist_bold text-lg md:xl lg:text-2xl">{langObj.kidsCollection}</h2>
+                        <Link href='/products/category/64d4dfa643c643cc9c60c672?name=kids' className="px-4 py-2 bg-gray-100 text-xs md:text-[15px] rounded-full font_urbanist_medium">{langObj.visitCollection}</Link>
                     </div>
                     <div className="box_2 w-full px-5 md:px-7 lg:px-14 xl:px-20 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 lg:gap-2 xl:gap-4 2xl:gap-14">
                         {indexContent?.kidsCollection.map((product, index) => {
                             if (window.matchMedia('(max-width: 760px)').matches && index > 3) return
-                            if (window.matchMedia('(min-width: 760px) and (max-width: 1024px)').matches && index > 2) return
+                            else if (window.matchMedia('(min-width: 760px) and (max-width: 1024px)').matches && index > 2) return
                             else if (index > 4) return
-                            return <Shoppingcard key={"kids_collection" + product._id} margin='0' product={product} />
+                            else return <Shoppingcard key={"kids_collection" + product._id} margin='0' product={product} />
                         })}
                     </div>
                 </section> : (indexLoading && <SkeletonRow />)}

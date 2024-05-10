@@ -2,13 +2,13 @@ import ConnectDB from "@/utils/connect_db"
 import speakeasy from 'speakeasy';
 import User from "@/models/user";
 import { sendNotification } from "@/utils/send_notification";
-import { SignJwt, EncryptOrDecryptData, SetSessionCookie } from "@/utils/cyphers";
+import { SignJwt, SetSessionCookie } from "@/utils/cyphers";
 import StandardApi from "@/middlewares/standard_api";
 
 const Update2FA = async (req, res) => StandardApi(req, res, { method: "PUT" }, async () => {
-    const { totp_code, two_fa_enabled, password } = req.body;
+    const { totp_code } = req.body;
     const user_id = req.user._id;
-    if (!totp_code || two_fa_enabled === undefined || !password) return res.status(400).json({ success: false, msg: "All valid parameters required. Query Parameters: user_id, totp_code, two_fa_enabled (boolean to be set)" })
+    if (!totp_code) return res.status(400).json({ success: false, msg: "All valid parameters required. Query Parameters: user_id, totp_code, two_fa_enabled (boolean to be set)" })
 
     await ConnectDB()
     let user = await User.findById(user_id).select('+two_fa_secret')
@@ -18,14 +18,11 @@ const Update2FA = async (req, res) => StandardApi(req, res, { method: "PUT" }, a
     const verified = speakeasy.totp.verify({
         secret: user.two_fa_secret,
         encoding: 'base32',
-        token: totp_code,
+        token: totp_code
     });
 
-    const originalPassword = EncryptOrDecryptData(user.password, false)
-    if (originalPassword !== password) return res.status(401).json({ success: false, msg: "Your password is incorrect." })
-
-    if (verified && originalPassword === password) {
-        const updatedUser = await User.findByIdAndUpdate(user_id, { two_fa_enabled: !res.user.two_fa_enabled }, { new: true, _immutability: "disable", lean: true })
+    if (verified) {
+        const updatedUser = await User.findByIdAndUpdate(user_id, { two_fa_enabled: !user.two_fa_enabled }, { new: true, _immutability: "disable", lean: true })
 
         SetSessionCookie(req, res, {
             _id: updatedUser._id,
@@ -40,7 +37,7 @@ const Update2FA = async (req, res) => StandardApi(req, res, { method: "PUT" }, a
             last_checkin: updatedUser.last_checkin,
             createdAt: updatedUser.createdAt,
             ...(updatedUser.role && { role: updatedUser.role })
-        }, res.user.exp);
+        }, req.user.exp);
         delete user.two_fa_secret;
         delete user.password;
 

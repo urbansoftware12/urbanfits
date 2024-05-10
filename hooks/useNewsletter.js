@@ -6,6 +6,8 @@ import jwt from 'jsonwebtoken';
 
 const useNewsletter = create((set) => ({
     newsletterData: null,
+    show: false,
+    toggleNewsletterModal: () => set((state) => ({ show: !state.show })),
     getNewsletterData: async () => {
         const { user } = useUser.getState()
         if (!user) return
@@ -15,9 +17,7 @@ const useNewsletter = create((set) => ({
             delete decodedData._id;
             delete decodedData.user;
             return set(() => ({ newsletterData: decodedData }))
-        } catch (error) {
-            return console.log(error)
-        }
+        } catch (error) { console.log(error) }
     },
 
     updateNewsletterData: async (valuesObj, sendRequest = true) => {
@@ -27,22 +27,21 @@ const useNewsletter = create((set) => ({
             try {
                 const { data } = await axios.put(`${process.env.NEXT_PUBLIC_HOST}/api/newsletter/update`, valuesObj)
                 toaster("success", data.msg)
-                const decodedData = jwt.decode(data.payload)?._doc
+                const decodedData = jwt.decode(data.payload)
                 delete decodedData._id;
                 delete decodedData.user;
                 set(() => ({ newsletterData: decodedData }))
                 return decodedData
             } catch (error) {
                 console.log(error)
-                return toaster("error", error.response.data.msg)
+                return toaster("error", error?.response?.data?.msg || "Oops! something went wrong, we're working on it.")
             }
         }
         else if (!sendRequest) {
-            const decodedData = jwt.decode(valuesObj)?._doc
+            const decodedData = jwt.decode(valuesObj)
             set(() => ({ newsletterData: decodedData }))
             return decodedData
         }
-    },
-    clearNewsletterData: () => set(() => ({ newsletterData: null }))
+    }
 }));
 export default useNewsletter

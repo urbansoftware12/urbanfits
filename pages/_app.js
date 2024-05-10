@@ -4,52 +4,47 @@ import '@/styles/carousels.css';
 import { useState, useEffect } from 'react';
 import Navbar from '@/components/navbars/navbar';
 import Footer from '@/components/footer';
+import Newsletter from '@/components/modals/newsletter';
 import dynamic from 'next/dynamic';
 import { ToastContainer } from 'react-toastify'
 import useUser from '@/hooks/useUser';
+import useNewsletter from '@/hooks/useNewsletter';
 import { useRouter } from 'next/router';
 import { CartProvider } from "react-use-cart";
 import LoadingBar from 'react-top-loading-bar';
-import toaster from "@/utils/toast_function";
-import { pusherClient, initBeamsClient } from '@/utils/pusher';
-import PusherClient from 'pusher-js';
+import { initBeamsClient } from '@/utils/pusher';
 import { urbanist } from '@/fonts';
-// import useWallet from '@/hooks/useWallet';
-// import getGeoLocation from '@/utils/geo-location'
 
 function App({ Component, pageProps: { ...pageProps } }) {
-  const router = useRouter()
-  const { getMe, user, isLoggedIn, getNotifications } = useUser();
-  // const { getExchangeRate } = useWallet()
-  const [progress, setProgress] = useState(0)
+  const router = useRouter();
+  const { getMe, user, isLoggedIn, notifyIfNotCheckedIn, getNotifications, emitPresenceEvent, subscribePersonalChannel, recordVisit } = useUser();
+  const { newsletterData } = useNewsletter();
+  const [progress, setProgress] = useState(0);
 
   useEffect(() => {
     getMe();
-    // getGeoLocation().then(getExchangeRate)
-    // window.addEventListener("beforeunload", igniteSession)
+    recordVisit();
+    notifyIfNotCheckedIn()
   }, [])
 
   useEffect(() => {
+    if (localStorage.getItem("letter_ad") !== "true" && !newsletterData?.email) setTimeout(() => {
+      useNewsletter.setState({ show: true })
+      localStorage.setItem("letter_ad", "true")
+    }, 10000)
+
+    let unSubPresence = null;
+    let unSubPersonalChannel = null;
     if (isLoggedIn() && user) {
       getNotifications()
       initBeamsClient()
-      const presenceInstance = new PusherClient(process.env.NEXT_PUBLIC_PUSHER_KEY, {
-        cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER,
-        channelAuthorization: {
-          endpoint: `${process.env.NEXT_PUBLIC_HOST}/api/pusher/auth`,
-          params: {
-            user_id: user?._id,
-            email: user?.email
-          }
-        },
-      });
-      presenceInstance.subscribe("presence-urbanfits")
+      unSubPresence = emitPresenceEvent()
+      unSubPersonalChannel = subscribePersonalChannel()
+    }
 
-      const userChannel = pusherClient.subscribe(`uf-user_${user._id}`)
-      userChannel.bind('new-notification', (data) => {
-        useUser.setState({ notifications: data.notification_data.notifications })
-        if (data.notify) toaster("info", data.notification_data.notifications[0].mini_msg)
-      })
+    return () => {
+      if (unSubPresence) unSubPresence()
+      if (unSubPersonalChannel) unSubPersonalChannel()
     }
   }, [user])
 
@@ -61,8 +56,8 @@ function App({ Component, pageProps: { ...pageProps } }) {
   return <main className={`max-w-[2000px] mx-auto ${urbanist.className} antialiased`}>
     <LoadingBar color='#FF4A60' height={4} waitingTime={1} loaderSpeed={1200} shadow={true} progress={progress} onLoaderFinished={() => setProgress(0)} />
     <ToastContainer className={`toast ${urbanist.className} antialiased`} />
+    <Newsletter />
     <CartProvider>
-      <div className="sticky z-[100] top-0 left-0 w-full py-0.5 flex justify-center bg-pinky text-white text-[10px] lg:text-xs">Website under Development, You may face some runtime errors. Don't be sad.</div>
       <Navbar />
       <Component {...pageProps} />
       <Footer />

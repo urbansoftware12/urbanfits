@@ -16,7 +16,6 @@ const SpinUfWheel = async (req, res) => StandardApi(req, res, { method: "POST" }
     const user = await User.findOne({ _id: user_id, "uf_wallet.card_number": card_number })
     if (!user) return res.status(404).json({ success: false, msg: "Invalid information of user uf-card" })
 
-    console.log("the user's timezone: ", req.user.timezone)
     const currentDate = new Date(getDateOfTimezone(req.user.timezone).setHours(23, 59, 59));
     const today = getDateOfTimezone(req.user.timezone);
     const currentWeekStart = new Date(new Date(new Date(today).setDate(today.getDate() - (today.getDay() + 6) % 7)).setHours(0, 0, 0, 0));

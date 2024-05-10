@@ -1,4 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react';
+import useLanguage from '@/hooks/useLanguage';
+import { categoryPage as categoryLang } from '@/locales';
 import dynamic from 'next/dynamic';
 import useProduct from '@/hooks/useProduct';
 const CatalogueCarousel = dynamic(() => import('@/components/carousels/catalogueCarousel'));
@@ -9,12 +11,15 @@ import ListingShopSection from '@/components/listingShop_section';
 import toaster from '@/utils/toast_function';
 
 export default function SaleCatalogue() {
-    const { getSaleProducts, productLoading } = useProduct()
-    const [fRecourses, setFRecourses] = useState({ minPrice:0, maxPrice:0, availableColors:[], availableSizes:[] })
-    const [products, setProducts] = useState([])
-    const [filteredData, setFilteredData] = useState(products)
-    const [page, setPage] = useState(1)
-    const [filterBar, setFilterBar] = useState(false)
+    const { getSaleProducts, productLoading } = useProduct();
+    const { locale } = useLanguage();
+    const [fRecourses, setFRecourses] = useState({ minPrice: 0, maxPrice: 0, availableColors: [], availableSizes: [] });
+    const [products, setProducts] = useState([]);
+    const [filteredData, setFilteredData] = useState(products);
+    const [page, setPage] = useState(1);
+    const [filterBar, setFilterBar] = useState(false);
+
+    const langObj = categoryLang[locale];
 
     useEffect(() => {
         getSaleProducts(page, null, null, (data) => {
@@ -30,7 +35,7 @@ export default function SaleCatalogue() {
     }, [])
 
     return <>
-    <FilterBar show={filterBar} setFilterBar={setFilterBar} array={products} minPrice={fRecourses.minPrice} maxPrice={fRecourses.maxPrice} availableColors={fRecourses.availableColors} availableSizes={fRecourses.availableSizes} onFilter={(filterData) => setFilteredData(filterData)} />
+        <FilterBar show={filterBar} setFilterBar={setFilterBar} array={products} minPrice={fRecourses.minPrice} maxPrice={fRecourses.maxPrice} availableColors={fRecourses.availableColors} availableSizes={fRecourses.availableSizes} onFilter={(filterData) => setFilteredData(filterData)} />
         <main className="w-full pb-20 bg-white font_urbanist">
             <CatalogueCarousel />
             <section className='w-full p-5 md:px-7 lg:px-14 xl:px-20 py-16 h-full font_urbanist text-left' >
@@ -45,7 +50,7 @@ export default function SaleCatalogue() {
                                 <path d="M23.1193 42.875L18.9675 44.2575V26.3438L9.5259 15.958C8.82083 15.1823 8.43011 14.1717 8.43 13.1234V8.43H42.15V13.0075C42.1498 14.1253 41.7055 15.1972 40.915 15.9875L31.6125 25.29V28.4513" stroke="black" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
                                 <path d="M38.8201 32.8981C39.2311 32.4871 39.7191 32.1611 40.256 31.9386C40.793 31.7162 41.3686 31.6017 41.9498 31.6017C42.531 31.6017 43.1065 31.7162 43.6435 31.9386C44.1805 32.1611 44.6684 32.4871 45.0794 32.8981C45.4904 33.3091 45.8164 33.797 46.0389 34.334C46.2613 34.871 46.3758 35.4465 46.3758 36.0277C46.3758 36.6089 46.2613 37.1845 46.0389 37.7215C45.8164 38.2584 45.4904 38.7464 45.0794 39.1574L37.935 46.365H31.6125V40.0425L38.8201 32.8981Z" stroke="black" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
                             </svg></span>
-                            Filters
+                            {langObj.filters}
                         </button>
                     </div>
                 </nav>
@@ -76,7 +81,7 @@ export default function SaleCatalogue() {
                     })} className={`${productLoading && 'pointer-events-none'} lg:mt-20 group flex items-center mx-auto font_copper text-xs md:text-sm tracking-expand md:tracking-[1.5em] md:hover:tracking-[1em] transition-all duration-300`}>
                     <i className="w-16 group-hover:w-28 h-0.5 mx-1 bg-black transition-all" />
                     <i className="w-5 group-hover:w-0 h-0.5 mx-1 bg-black transition-all" />
-                    {productLoading ? <BounceLoader /> : <p>&nbsp;MORE</p>}
+                    {productLoading ? <BounceLoader /> : <p className='uppercase'>&nbsp;{langObj.more}</p>}
                     <i className="w-5 group-hover:w-0 h-0.5 mx-1 bg-black transition-all" />
                     <i className="w-16 group-hover:w-28 h-0.5 mx-1 bg-black transition-all" />
                 </button>

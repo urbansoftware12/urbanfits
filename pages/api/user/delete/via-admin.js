@@ -17,15 +17,14 @@ const DeleteUsers = async (req, res) => StandardApi(req, res, { method: "PUT", v
 
     if (!users || users.length === 0) return res.status(400).json({ success: false, msg: "Products array is required with atleast one valid id." })
     else {
-        const query = { _id: { $in: users } }
-        await User.deleteMany(query)
-        await Addresses.deleteMany(query)
-        await Newsletter.deleteMany(query)
-        await Notification.deleteMany(query)
-        await Order.deleteMany(query)
-        await Shoppinglist.deleteMany(query)
-        await UFpoints.deleteMany(query)
-        await UfTasks.deleteMany(query)
+        await User.deleteMany({ _id: { $in: users } });
+        await Addresses.deleteMany({ user_id: { $in: users } });
+        await Newsletter.deleteMany({ user: { $in: users } });
+        await Notification.deleteMany({ user_id: { $in: users } });
+        await Shoppinglist.deleteMany({ user_id: { $in: users } });
+        await UFpoints.deleteMany({ user_id: { $in: users } });
+        await UfTasks.deleteMany({ user_id: { $in: users } });
+        await Order.updateMany({ user_id: { $in: users } }, { user_id: undefined });
         res.status(200).json({
             success: true,
             msg: `${users.length} users deleted successfully`

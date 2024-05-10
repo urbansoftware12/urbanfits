@@ -69,7 +69,7 @@ export default function DiscountBox({ formatPrice, giftCard, setGiftCard, coupon
 
     return <>
         <div className="flex items-center text-xs md:text-sm lg:text-base font-semibold">
-            <i className="fa-solid fa-circle-info" />&nbsp;
+            <i className="fa-solid fa-circle-info text-gray-500" />&nbsp;
             <span>Have a Coupon / Gift Card? &nbsp;</span>
             <button onClick={() => setExpand(prev => !prev)} className="text-gray-500">Click here to enter code</button>
         </div>

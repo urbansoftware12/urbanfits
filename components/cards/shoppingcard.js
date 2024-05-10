@@ -5,7 +5,8 @@ import { useCart } from "react-use-cart";
 import useUser from '@/hooks/useUser';
 import Image from 'next/image'
 import heart from '@/public/heart.svg'
-import redHeart from '@/public/redHeart.svg'
+import redHeart from '@/public/redHeart.svg';
+import addToCartToast from '../taosts/add-to-cart';
 import toaster from '@/utils/toast_function'
 import ImgLoader from '../loaders/imgLoader';
 import DemoImg from '@/public/card imgs/demo-img.png'
@@ -30,6 +31,7 @@ export default function Shoppingcard({ product }, props) {
             variant_id: activeVariant._id,
             id: `${activeVariant._id}${activeVariant.sizes[0].size}`,
             name: product.name,
+            variant_sku: activeVariant.sku,
             price: product.sale_price || product.price,
             sale_price: product.sale_price || 0,
             uf_points: product.uf_points || 0,
@@ -40,7 +42,7 @@ export default function Shoppingcard({ product }, props) {
             color: activeVariant.color_name,
             images: activeVariant.images,
             categories: product.categories
-        }, 1); toaster('success', "Your item is added to the Cart")
+        }, 1); addToCartToast(product.name, activeVariant.images[0], "cart")
     }
     const addToWishlist = () => {
         if (inWishList(product._id)) {
@@ -50,7 +52,7 @@ export default function Shoppingcard({ product }, props) {
         else {
             if (wishList.length > 79) return toaster("info", "You've reached your maximum limit.")
             addToWishList(product._id)
-            return toaster("success", 'Product added to WishList.')
+            addToCartToast(product.name, product.cover_image, "wishlist")
         }
     }
 
@@ -144,7 +146,7 @@ export function SmallShoppingcard({ product }, props) {
             sizes: activeVariant.sizes,
             color: activeVariant.color_name,
             images: activeVariant.images
-        }, 1); toaster('success', "Your item is added to the Cart")
+        }, 1); addToCartToast(product.name, activeVariant.images[0], "cart")
     }
     const addToWishlist = () => {
         if (inWishList(product._id)) {
@@ -154,7 +156,7 @@ export function SmallShoppingcard({ product }, props) {
         else {
             if (wishList.length > 79) return toaster("info", "You've reached your maximum limit.")
             addToWishList(product._id)
-            return toaster("success", 'Product added to WishList.')
+            addToCartToast(product.name, product.cover_image, "wishlist")
         }
     }
 

@@ -1,6 +1,7 @@
 import UFpoints from "@/models/ufpoints";
 import WeeklyCheckinPointsHistory from "@/models/weekly_checkin_history"
 import { getDateOfTimezone } from "./cyphers";
+import { monthNames } from "@/uf.config";
 
 export const AddPoints = async (user_id, card_number, timezone, data) => {
     try {
@@ -11,11 +12,6 @@ export const AddPoints = async (user_id, card_number, timezone, data) => {
             source = "daily_checkin",
             expirationDate
         } = data;
-        const monthNames = [
-            'january', 'february', 'march', 'april',
-            'may', 'june', 'july', 'august',
-            'september', 'october', 'november', 'december'
-        ];
 
         const pointsDocs = await UFpoints.find({
             user_id,

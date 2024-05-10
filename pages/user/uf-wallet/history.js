@@ -1,18 +1,22 @@
-import { useEffect, useState } from "react"
-import Head from "next/head"
-import Link from "next/link"
-import BounceLoader from "@/components/loaders/bounceLoader"
-import User from ".."
-import useUser from "@/hooks/useUser"
-import useWallet from "@/hooks/useWallet"
-import Error403 from "@/pages/403"
+import { useEffect, useState } from "react";
+import Head from "next/head";
+import Link from "next/link";
+import BounceLoader from "@/components/loaders/bounceLoader";
+import User from "..";
+import useUser from "@/hooks/useUser";
+import useWallet from "@/hooks/useWallet";
+import useLanguage from "@/hooks/useLanguage";
+import { ufWalletTab as walletLang } from "@/locales";
+import Error403 from "@/pages/403";
 
 const UfPointsNames = { daily_checkin: "Daily Checkin", prize_wheel: "Prize Wheel", signup: "Sign Up", place_order: "Place Order", uf_task: "UF Task", additional_reward: "Other", deduction: "Deduction" }
 
 export default function UFwallet() {
-    const { user, isLoggedIn } = useUser()
-    const { points, getUfHistory, walletLoading, formatPrice } = useWallet()
-    const [history, setHistory] = useState(null)
+    const { user, isLoggedIn } = useUser();
+    const { points, getUfHistory, walletLoading, formatPrice } = useWallet();
+    const { locale } = useLanguage();
+    const [history, setHistory] = useState(null);
+    const langObj = walletLang[locale];
 
     const groupHistoryByYearAndMonth = (history) => {
         if (!history) return null
@@ -55,34 +59,34 @@ export default function UFwallet() {
             <div className="w-full p-4 border-b border-gray-50 flex justify-between items-center">
                 <Link href="/user" className='fa-solid fa-chevron-left text-xl'></Link>
                 <div className="flex flex-col justify-center items-center font_urbanist text-xs">
-                    <h1 className="font_urbanist_medium text-lg">UF Wallet</h1>
-                    All data will be encrypted
+                    <h1 className="font_urbanist_medium text-lg">{langObj.walletTitle}</h1>
+                    {langObj.encryptedMsg}
                 </div>
                 <i className='w-0 h-0' />
             </div>
             <section className="w-full p-4">
-                <h1 className="mb-5 font_urbanist_bold">UF - Points History</h1>
+                <h1 className="mb-5 font_urbanist_bold">{langObj.historyTitle}</h1>
                 <section className="w-full mb-4 py-5 text-xs flex justify-between items-center border-y border-gray-50">
                     <div className="w-1/2 flex flex-col">
-                        Linked Card number
+                        {langObj.linkedCard}
                         <span className="font_urbanist_bold text-base text-pinky">{user.uf_wallet.card_number}</span>
                     </div>
                     <div className="w-1/2 flex flex-col">
-                        Balance
-                        <span className="font_urbanist_bold text-base text-pinky">{points} UF pts ({formatPrice(points * process.env.NEXT_PUBLIC_UF_POINT_RATE)})</span>
+                        {langObj.balance}
+                        <span className="font_urbanist_bold text-base text-pinky">{points} UF pts ({formatPrice(points * parseFloat(process.env.NEXT_PUBLIC_UF_POINT_RATE))})</span>
                     </div>
                 </section>
                 <div className="w-full py-5 flex justify-between items-center text-10px">
-                    <h3 className="text-sm font-semibold">Points Transaction History</h3>
-                    <button onClick={() => getUfHistory((history_docs) => setHistory(history_docs))} disabled={walletLoading} className="px-4 py-1 text-white bg-[#FF4A60] rounded-full">Refresh history&nbsp;&nbsp; <i className={`fa-solid fa-rotate-right ${walletLoading && "fa-spin"}`} /></button>
+                    <h3 className="text-sm font-semibold">{langObj.transactionsTitle}</h3>
+                    <button onClick={() => getUfHistory((history_docs) => setHistory(history_docs))} disabled={walletLoading} className="px-4 py-1 text-white bg-[#FF4A60] rounded-full">{langObj.refresh}&nbsp;&nbsp; <i className={`fa-solid fa-rotate-right ${walletLoading && "fa-spin"}`} /></button>
                 </div>
                 <section className="w-full gap-y-4">
                     <div className="w-full mb-4 grid grid-cols-5 place-items-center text-xs font_urbanist_bold">
-                        <span className="place-self-start">Source</span>
-                        <span>Earned</span>
-                        <span>Spent</span>
-                        <span>Epires At</span>
-                        <span>Total Balance</span>
+                        <span className="place-self-start">{langObj.transactionColumns.item1}</span>
+                        <span>{langObj.transactionColumns.item2}</span>
+                        <span>{langObj.transactionColumns.item3}</span>
+                        <span>{langObj.transactionColumns.item4}</span>
+                        <span>{langObj.transactionColumns.item5}</span>
                     </div>
                     {walletLoading && <div className="w-full my-5 flex justify-center"><BounceLoader /></div>}
                     {groupedRecords ? groupedRecords.map((recordObj, index) => {
@@ -102,7 +106,7 @@ export default function UFwallet() {
                                     return <section key={i} className=" bg-white border-b border-b-gray-300 grid grid-cols-5 text-xs">
                                         <div className="w-full flex items-center">
                                             <span className="py-3 flex flex-col text-[10px]">
-                                                <h6 className="font_copper text-xs">{UfPointsNames[record.source]}</h6>
+                                                <h6 className="font_copper text-xs uppercase">{UfPointsNames[record.source]}</h6>
                                                 {createdDate.getDate() + "/" + (createdDate.getMonth() + 1) + "/" + createdDate.getFullYear()}
                                             </span>
                                         </div>
@@ -122,28 +126,28 @@ export default function UFwallet() {
     else return <>
         <Head><title>My UF Wallet - Uraban Fits</title></Head>
         <User profileNull>
-            <h1 className="mb-10 text-2xl font_urbanist_bold">UF Points History</h1>
+            <h1 className="mb-10 text-2xl font_urbanist_bold">{langObj.historyTitle}</h1>
             <section className="mb-7 py-10 flex justify-between items-center border-y border-gray-50">
                 <div className="flex flex-col">
-                    Linked Card number
+                    {langObj.linkedCard}
                     <span className="font_urbanist_bold text-[22px] text-pinky">{user.uf_wallet.card_number}</span>
                 </div>
                 <div className="flex flex-col">
-                    Balance
-                    <span className="font_urbanist_bold text-[22px] text-pinky">{points} UF pts ({formatPrice(points * process.env.NEXT_PUBLIC_UF_POINT_RATE)})</span>
+                    {langObj.balance}
+                    <span className="font_urbanist_bold text-[22px] text-pinky">{points} UF pts ({formatPrice(points * parseFloat(process.env.NEXT_PUBLIC_UF_POINT_RATE))})</span>
                 </div>
             </section>
             <div className="w-full py-5 flex justify-between items-center">
-                <h3 className="font-semibold">Points Transaction History</h3>
-                <button onClick={() => getUfHistory((history_docs) => setHistory(history_docs))} disabled={walletLoading} className="px-4 py-1 text-xs lg:text-sm text-white bg-pinky rounded-full">Refresh history&nbsp;&nbsp; <i className={`fa-solid fa-rotate-right text-xs ${walletLoading && "fa-spin"}`} /></button>
+                <h3 className="font-semibold">{langObj.transactionsTitle}</h3>
+                <button onClick={() => getUfHistory((history_docs) => setHistory(history_docs))} disabled={walletLoading} className="px-4 py-1 text-xs lg:text-sm text-white bg-pinky rounded-full">{langObj.refresh}&nbsp;&nbsp; <i className={`fa-solid fa-rotate-right text-xs ${walletLoading && "fa-spin"}`} /></button>
             </div>
             <section className="w-full gap-y-4">
                 <div className="w-full mb-4 grid grid-cols-5 place-content-center place-items-center font_urbanist_bold">
-                    <span className="place-self-start">Source</span>
-                    <span>Earned</span>
-                    <span>Spent</span>
-                    <span>Expires At</span>
-                    <span>Total Balance</span>
+                    <span className="place-self-start">{langObj.transactionColumns.item1}</span>
+                    <span>{langObj.transactionColumns.item2}</span>
+                    <span>{langObj.transactionColumns.item3}</span>
+                    <span>{langObj.transactionColumns.item4}</span>
+                    <span>{langObj.transactionColumns.item5}</span>
                 </div>
                 {walletLoading && <div className="w-full my-8 flex justify-center"><BounceLoader /></div>}
                 {groupedRecords ? groupedRecords.map((recordObj, index) => {
@@ -164,7 +168,7 @@ export default function UFwallet() {
                                 return <section key={i} className=" bg-white border-b border-b-gray-300 grid grid-cols-5 text-sm">
                                     <div className="w-full flex items-center">
                                         <span className="mr-8 py-4 flex flex-col text-xs">
-                                            <h6 className="font_copper text-sm capitalize">{UfPointsNames[record.source]}</h6>
+                                            <h6 className="font_copper text-sm uppercase">{UfPointsNames[record.source]}</h6>
                                             {createdDate.getDate() + "/" + (createdDate.getMonth() + 1) + "/" + createdDate.getFullYear()}
                                         </span>
                                     </div>

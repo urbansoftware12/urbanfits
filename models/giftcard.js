@@ -1,27 +1,26 @@
-import mongoose from "mongoose"
+import mongoose from "mongoose";
+import { giftCardMethods } from "@/uf.config";
 
 const GiftcardSchema = new mongoose.Schema({
-    name: {
-        type: String,
-        required: true
-    },
     order_id: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Order"
     },
-    customer_email: {
+    sender: {
+        name: String,
+        email: String,
+        message: String
+    },
+    receiver: {
+        name: String,
+        email: String
+    },
+    buy_for: {
         type: String,
-        required: true
+        default: "self",
+        enum: Object.keys(giftCardMethods)
     },
-    reserved: {
-        type: Boolean,
-        required: true,
-        default: false
-    },
-    type: {
-        type: String,
-        required: true,
-    },
+    cover_image: String,
     gift_code: {
         type: String,
         required: true

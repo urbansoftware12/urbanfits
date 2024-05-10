@@ -337,7 +337,7 @@ input:checked+.slider:before {
   display: none;
 }
 
-.toast{
+.toast {
   font-family: var(--urbanist) !important;
 }
 

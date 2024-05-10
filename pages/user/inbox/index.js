@@ -43,11 +43,12 @@ const Option = (props) => {
 }
 
 export const NotificationItem = ({ notific, key, marginClass }) => {
+    const notificTime = new Date(notific.timestamp);
     return <div key={key} className={`w-full ${marginClass} flex flex-col border-b py-4`}>
         <h3 className="mb-3 md:mb-4 font_urbanist_bold text-base lg:text-lg">{notific.heading}</h3>
         <p className="mb-2 font_urbanist text-sm">{notific.message}</p>
         <div className='w-full flex justify-between items-center font_urbanist_light text-10px md:text-xs'>
-            <span>{notific.timestamp}</span>
+            <span>{notificTime.getDate()}/{notificTime.getMonth() + 1}/{notificTime.getFullYear()} - {notificTime.getHours()}:{notificTime.getMinutes()}</span>
             {timeAgo(notific.timestamp)}
         </div>
     </div>

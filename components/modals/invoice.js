@@ -5,40 +5,25 @@ import Image from 'next/image'
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import Loader from '../loaders/loader';
-// import { saveAs } from 'file-saver';
 
 const OrderItem = ({ item, index }) => {
     const { formatPrice } = useWallet()
-
-    return (
-        <div className={`w-full flex items-center py-3 px-1 border-b font_urbanist text-[10px] md:text-xs ${index % 2 ? 'bg-white' : 'bg-gray-50'}`}>
-            <span className="w-[10%] pl-2">{index}</span>
-            <span className="w-[15%]">
-                <Image width={100} height={100} src={process.env.NEXT_PUBLIC_BASE_IMG_URL + item.image} className='w-11 h-11 rounded-lg object-cover object-top' alt={item.name} />
-            </span>
-            <span className="w-[20%]">{item.name}</span>
-            <span className="w-[29%]">Leather Shoe high sole, 12 days replacement warrenty</span>
-            <span className="w-[7.66%] pl-2">{item.quantity}</span>
-            <span className="w-[9.66%]">{formatPrice(item.price)}</span>
-            <span className="w-[8.66%]">{formatPrice(item.price * item.quantity)}</span>
-        </div>
-    )
+    const isGfitCard = item.is_giftcard;
+    return <div style={{ display: "grid", gridTemplateColumns: "0.3fr 0.8fr 2.5fr 0.5fr 0.5fr 0.4fr 0.5fr 0.5fr" }} className={`items-center w-full py-3 border-b text-[10px] md:text-sm ${index % 2 ? 'bg-white' : 'bg-gray-50'}`}>
+        <span className=" ml-2">{index}</span>
+        {isGfitCard ? <div className="w-14 aspect-square bg-pinky rounded-lg flex justify-center items-center text-[7px] lg:text-[8px] text-white font_copper">E-GIFTCARD</div> : <Image width={100} height={100} src={process.env.NEXT_PUBLIC_BASE_IMG_URL + item.image} className='w-14 aspect-square rounded-lg object-cover object-top' alt={item.name} />}
+        <span>{isGfitCard ? (item.buy_for == "self" ? "UF E-Giftcard (For Self)" : "UF E-Giftcard (For Friend)") : item.name}</span>
+        <span>{isGfitCard ? "--" : item.variant}</span>
+        <span>{isGfitCard ? "--" : item.size}</span>
+        <span>{item.quantity}</span>
+        <span>{formatPrice(item.price)}</span>
+        <span>{formatPrice(item.price * item.quantity)}</span>
+    </div>
 }
 
 export default function Invoice({ order, show, setInvoice }, props) {
-    const { formatPrice } = useWallet()
-    const [loading, setLoading] = useState(false)
-    // const downloadInvoice = () => {
-    //     const element = document.getElementById('invoice');
-    //     html2canvas(element, {
-    //         scale: 6,
-    //         useCORS: true
-    //     }).then((canvas) => {
-    //         canvas.toBlob(function (blob) {
-    //             saveAs(blob, 'invoice#36.png');
-    //         });
-    //     });
-    // }
+    const { formatPrice } = useWallet();
+    const [loading, setLoading] = useState(false);
 
     const downloadInvoice = async (name) => {
         setLoading(true)
@@ -50,6 +35,9 @@ export default function Invoice({ order, show, setInvoice }, props) {
         pdf.save(`${name}.pdf`);
         setLoading(false)
     }
+
+    const orderItems = order.gift_cards?.some(item => item.is_giftcard) ? order.gift_cards : order.order_items;
+    console.log("the items here ", order)
 
     const shareInvoice = () => {
         const element = document.getElementById('invoice');
@@ -89,7 +77,7 @@ export default function Invoice({ order, show, setInvoice }, props) {
             </section>
 
             <section className="w-full pb-10 rounded-3xl overflow-x-scroll scrollbar_x">
-                <section id='invoice' className="w-full min-w-[1350px] p-7 lg:px-[3.5%] py-7 bg-white rounded-3xl">
+                <section id='invoice' className="w-full p-7 lg:px-[3.5%] py-7 bg-white rounded-3xl">
                     <h2 className="mb-4 font_urbanist_medium text-base md:text-lg tracking-widiest">Invoie # <span className="text-xs"></span>{order._id}</h2>
                     <div className="flex items-start gap-x-20 lg:gap-x-40">
                         <div className="flex flex-col items-start justify-start font_urbanist_light text-xs gap-y-2">
@@ -99,67 +87,38 @@ export default function Invoice({ order, show, setInvoice }, props) {
                             <p className="font_urbanist">Email: <span className="font_urbanist_light">{order.email}</span></p>
                             <p className="font_urbanist">Phone: <span className="font_urbanist_light">{order.shipping_address.phone_prefix} {order.shipping_address.phone_number}</span></p>
                         </div>
-
-                        <div className="flex justify-between items-start">
-                            <div className="flex flex-col items-start justify-start font_urbanist_light text-xs gap-y-2">
-                                <h3 className="font_urbanist text-xs md:text-sm">Detials</h3>
-                                <span className='capitalize'>{order.billing_address.firstname} {order.billing_address.lastname}</span>
-                                <span>{order.billing_address.address},</span>
-                                <p className="font_urbanist">Email: <span className="font_urbanist_light">{order.email}</span></p>
-                                <p className="font_urbanist">Phone: <span className="font_urbanist_light">{order.billing_address.phone_prefix} {order.billing_address.phone_number}</span></p>
-                            </div>
-                        </div>
                     </div>
 
-                    <div className="w-full overflow-y-scroll mt-5">
-                        <div className="w-full flex items-center py-3 px-1 border-b font_urbanist text-xs">
-                            <span className="w-[10%] pl-2 text-gray-400">#</span>
-                            <span className="w-[15%] text-gray-400">Image</span>
-                            <span className="w-[20%] text-gray-400">Item</span>
-                            <span className="w-[29%] text-gray-400">Description</span>
-                            <span className="w-[7.66%] text-gray-400">Units</span>
-                            <span className="w-[9.66%] text-gray-400">Unit-Cost</span>
-                            <span className="w-[8.66%] text-gray-400">Total</span>
+                    <div className="w-full py-3 px-1 overflow-y-scroll mt-5">
+                        <div style={{ display: "grid", gridTemplateColumns: "0.3fr 0.8fr 2.5fr 0.5fr 0.5fr 0.4fr 0.5fr 0.5fr" }} className="w-full py-2 mb-3 border-b text-gray-400 text-xs">
+                            <span className='ml-2'>#</span>
+                            <span>Image</span>
+                            <span>Item</span>
+                            <span>Variant</span>
+                            <span>Size</span>
+                            <span>Units</span>
+                            <span>Unit-Cost</span>
+                            <span>Total</span>
                         </div>
-                        {order.order_items.map((item, index) => {
-                            return <OrderItem key={index} index={index + 1} item={item} />
-                        })}
-                        {order.gift_cards.map((item, index) => {
-                            return <div className={`w-full flex items-center py-3 px-1 border-b font_urbanist text-[10px] md:text-xs ${index % 2 ? 'bg-white' : 'bg-gray-50'}`}>
-                                <span className="w-[10%] pl-2">{index + 1}</span>
-                                <div className="w-[15%]">
-                                    <span className={`${item.bg} w-3/5 mx-auto aspect-video flex justify-center items-center text-xs text-white font_montserrat_bold tracking-1 uppercase rounded-xl overflow-hidden`}>
-                                        {item.d_name}
-                                    </span>
-                                </div>
-                                <span className="w-[20%]">{item.name}</span>
-                                <span className="w-[29%]"></span>
-                                <span className="w-[7.66%] pl-2"></span>
-                                <span className="w-[9.66%]"></span>
-                                <span className="w-[8.66%]">{formatPrice(item.price)}</span>
-                            </div>
-                        })}
+                        {orderItems.map((item, index) => <OrderItem key={index} index={index + 1} item={item} />)}
                     </div>
 
-                    <div className="w-full pt-10 flex flex-col items-end">
-                        <div className="w-1/5 flex justify-between font_urbanist text-xs gap-y-3">
-                            <div className="flex flex-col gap-y-3">
+                    <section className="w-full pt-10 flex flex-col items-end">
+                        <div className="w-1/4 h-full px-4 py-3 border rounded-2xl text-xs">
+                            <div className="w-full mb-6 grid grid-cols-2 gap-y-3">
                                 <span>Subtotal</span>
+                                <span className='justify-self-end'>{formatPrice(order.price_details.sub_total)}</span>
                                 <span>Shipping Fees</span>
+                                <span className='justify-self-end'>{formatPrice(order.price_details.shipping_fees)}</span>
                                 <span>Total</span>
+                                <span className='justify-self-end'>{formatPrice(order.price_details.total)}</span>
                             </div>
-
-                            <div className="flex flex-col gap-y-3">
-                                <span>{formatPrice(order.price_details.total_price)}</span>
-                                <span>{formatPrice(order.price_details.shipping_fees)}</span>
-                                <span>{formatPrice(order.price_details.total_price + order.price_details.shipping_fees)}</span>
-                            </div>
+                            <Button onClick={() => { downloadInvoice('invoice#36') }} my="0" fontSize='text-xs' classes='w-full' font='font_urbanist tracking-widest'>DOWNLOAD</Button>
                         </div>
-                        <Button onClick={() => { downloadInvoice('invoice#36') }} fontSize='text-xs' classes='w-1/5' font='font_urbanist tracking-widest'>DOWNLOAD</Button>
-                    </div>
+                    </section>
                 </section>
             </section>
 
         </div>
-    </main>
+    </main >
 }

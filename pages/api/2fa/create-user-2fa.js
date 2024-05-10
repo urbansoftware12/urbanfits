@@ -22,7 +22,7 @@ const CreateUser2FA = async (req, res) => StandardApi(req, res, { method: "POST"
             two_fa_enabled: true,
             two_fa_activation_date: new Date()
         }, { new: true, _immutability: "disable", lean: true });
-
+        console.log("User data is here bro: ", req.user)
         SetSessionCookie(req, res, {
             _id: user._id,
             username: user.username,
@@ -36,7 +36,7 @@ const CreateUser2FA = async (req, res) => StandardApi(req, res, { method: "POST"
             last_checkin: user.last_checkin,
             createdAt: user.createdAt,
             ...(user.role && { role: user.role })
-        }, res.user.exp);
+        }, req.user.exp);
         delete user.two_fa_secret;
         delete user.password;
 

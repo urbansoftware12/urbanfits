@@ -3,8 +3,9 @@ import User from "@/models/user";
 import StandardApi from "@/middlewares/standard_api";
 
 const getManyUsers = async (req, res) => StandardApi(req, res, { verify_admin: true }, async () => {
+    const { limit } = req.query;
     await ConnectDB()
-    const LIMIT = 50;
+    const LIMIT = +limit || 50;
     let totalUsers = await User.countDocuments();
 
     const totalPages = Math.ceil(totalUsers / LIMIT);

@@ -8,8 +8,8 @@ import { SignJwt } from "@/utils/cyphers";
 
 const CreateNewsletter = async (req, res) => StandardApi(req, res, { method: "POST" }, async () => {
     await ConnectDB()
-    const { email, phone } = body;
     const { user } = req;
+    const { email, phone } = req.body;
 
     const sendSubConfirmationViaEmail = async (name, interests) => {
         if (!req.body.email) return

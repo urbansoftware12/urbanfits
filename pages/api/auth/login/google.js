@@ -8,9 +8,9 @@ import UAParser from "ua-parser-js";
 
 const LoginWithGoogle = async (req, res) => StandardApi(req, res, { method: "POST", verify_user: false, verify_admin: false }, async () => {
     const { token } = req.body;
-    if (!token || token.length < 20) return res.status(400).json({ success: false, msg: "A valid google token as `credential` is required." })
+    if (!token || token.length < 20) return res.status(400).json({ success: false, msg: "A valid google token as `token` is required." })
 
-    const googleClient = new OAuth2Client(process.env.CLIENT_ID);
+    const googleClient = new OAuth2Client(process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID);
     let ticket;
     try {
         ticket = await googleClient.verifyIdToken({
@@ -47,7 +47,7 @@ const LoginWithGoogle = async (req, res) => StandardApi(req, res, { method: "POS
 
     res.status(200).json({
         success: true,
-        msg: "You are Resgistered successfully !",
+        msg: "You are signed in successfully !",
         payload: SignJwt(user)
     })
     const date = new Date()

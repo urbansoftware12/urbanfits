@@ -2,10 +2,13 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import useNewsletter from './useNewsletter';
 import useWallet from './useWallet';
+import PusherClient from 'pusher-js';
+import { toast, Slide } from "react-toastify";
 import toaster from "@/utils/toast_function";
 import axios from 'axios';
 import jwt from 'jsonwebtoken';
 import cookie from "cookie";
+import Link from 'next/link';
 
 const useUser = create(persist((set, get) => ({
     user: null,
@@ -36,6 +39,47 @@ const useUser = create(persist((set, get) => ({
             console.log(error)
             toaster("error", error.response?.data.msg || (navigator.onLine ? "Oops! somethign went wrong." : "Network Error"))
         } finally { set(() => ({ userLoading: false })); }
+    },
+
+    checkIn: async () => {
+        const { isLoggedIn, updateUser, user } = get();
+        if (!isLoggedIn() || new Date(user.last_checkin).getTime() > new Date().getTime()) return;
+        set(() => ({ userLoading: true }));
+        try {
+            const { data } = await axios.put(`${process.env.NEXT_PUBLIC_HOST}/api/user/check-in`);
+            updateUser({ ...user, last_checkin: data.last_checkin }, true, true);
+            toaster("success", data.msg);
+            useWallet.getState().getUfBalance()
+        }
+        catch (error) {
+            console.log(error)
+            toaster("error", error.response?.data.msg || (navigator.onLine ? "Oops! somethign went wrong." : "Network Error"))
+        } finally { set(() => ({ userLoading: false })); }
+    },
+
+    notifyIfNotCheckedIn: () => {
+        const { user } = get();
+        if (!user?._id) return;
+        const currentDate = new Date();
+        if (currentDate > new Date(user.last_checkin)) toast(<Link href="/earn-ufpoints" className='text-[10px] md:text-xs flex items-center gap-x-4'>
+            <svg className='size-20' width="30" height="26" viewBox="0 0 30 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M16.178 15.2446V15.9109C16.178 20.5292 13.6407 22.514 9.80307 22.514C5.96545 22.514 3.39222 20.5292 3.39222 15.9109V0H0V15.875C0 22.4033 4.39742 25.4 9.76717 25.4C15.1339 25.4 19.5702 22.4033 19.5702 15.875V15.244H16.178V15.2446Z" fill="#FF4A60" />
+                <path d="M26.4838 8.78369H15.8185V12.126H26.4838V8.78369Z" fill="#FF4A60" />
+                <path d="M29.1848 0H15.8185V3.34233H29.1848V0Z" fill="#FF4A60" />
+            </svg>
+            <div>
+                Welcome! you haven't checked in yet. <span className="font-bold">Click here</span> to check in and gain reward points.
+            </div>
+        </Link>, {
+            closeButton: false,
+            icon: false,
+            autoClose: 5000,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            theme: "light",
+            transition: Slide
+        })
     },
 
     signIn: async (credentials, callback, router) => {
@@ -110,6 +154,41 @@ const useUser = create(persist((set, get) => ({
             console.log(error)
             toaster("error", error.response?.data.msg || (navigator.onLine ? "Oops! somethign went wrong." : "Network Error"))
         } finally { set(() => ({ userLoading: false })); }
+    },
+
+    recordVisit: async () => {
+        if (get().isLoggedIn()) return;
+        try { axios.post(`${process.env.NEXT_PUBLIC_HOST}/api/user/visit`) }
+        catch (error) { console.log(error) }
+    },
+
+    emitPresenceEvent: () => {
+        const { user } = get();
+        const presenceInstance = new PusherClient(process.env.NEXT_PUBLIC_PUSHER_KEY, {
+            cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER,
+            channelAuthorization: {
+                endpoint: `${process.env.NEXT_PUBLIC_HOST}/api/pusher/auth`,
+                params: {
+                    user_id: user?._id,
+                    email: user?.email
+                }
+            },
+        });
+        presenceInstance.subscribe("presence-urbanfits")
+        return () => presenceInstance.unsubscribe("presence-urbanfits");
+    },
+
+    subscribePersonalChannel: () => {
+        const pusherClient = new PusherClient(process.env.NEXT_PUBLIC_PUSHER_KEY, {
+            cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER,
+        });
+        const channelName = `uf-user_${get().user._id}`
+        const userChannel = pusherClient.subscribe(channelName)
+        userChannel.bind('new-notification', (data) => {
+            useUser.setState({ notifications: data.notification_data.notifications })
+            if (data.notify) toaster("info", data.notification_data.notifications[0].mini_msg)
+        })
+        return () => userChannel.unsubscribe(channelName);
     },
 
     getNotifications: async () => {
@@ -191,11 +270,10 @@ const useUser = create(persist((set, get) => ({
             router.replace("/");
         } catch (e) { console.log("Coouldn't log out.", e) }
         finally {
-            const { clearNewsletterData } = useNewsletter.getState()
             set(() => ({ user: null, address: null, notifications: [], wishList: [], recentItems: [], country: { name: "United Arab Emirates", code: "+971", country: "ae", src: process.env.NEXT_PUBLIC_BASE_IMG_URL + "/country-flags/AE.webp" } }))
             localStorage.clear()
             sessionStorage.clear()
-            clearNewsletterData()
+            useNewsletter.setState({ newsletterData: null })
             toaster("success", "You are signed out !")
             set(() => ({ userLoading: false }));
         }
@@ -217,7 +295,7 @@ const useUser = create(persist((set, get) => ({
         if (!get().isLoggedIn()) return
         set(() => ({ userLoading: true }));
         try {
-            const { data } = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/api/user/addresses/get`)
+            const { data } = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/api/user/addresses/get`, { withCredentials: true })
             set(() => ({ address: jwt.decode(data.payload) }));
         } catch (err) {
             console.log(err.response.data.msg)

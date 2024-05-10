@@ -8,7 +8,7 @@ import Link from 'next/link'
 import ToTopBtn from '../buttons/toTopBtn';
 import Image from 'next/image';
 import bag from '@/public/bag.svg'
-const LanguageModal = dynamic(() => import('../modals/languagemodal'));;
+const LanguageModal = dynamic(() => import('../modals/language'));;
 const Logout = dynamic(() => import('@/components/modals/logout'));
 const Cart = dynamic(() => import('../cart'));
 const Search = dynamic(() => import('../search'));
@@ -18,7 +18,9 @@ import {
     LocationIcon,
     UserIcon,
     DropDownIcon
-} from "@/public/accountIcons"
+} from "@/public/accountIcons";
+import useLanguage from '@/hooks/useLanguage';
+import { navbar as navLang } from '@/locales';
 
 const ListItem = (props) => {
     const router = useRouter()
@@ -41,26 +43,26 @@ const ListItem = (props) => {
 }
 
 const SecondaryNavbar = (props) => {
+    const { closeCart, langObj } = props;
     const calculateMinOrder = () => {
         const { currency } = props
         const minOrders = { "PKR": "15,000", "AED": "300", "SAR": "300" }
         return `${currency} ${minOrders[currency]}`
     }
 
-    if (window.matchMedia('(min-width: 760px)').matches) return <nav className="sticky top-4 left-0 right-0 z-40 w-full max-w-[2000px] mx-auto h-[50px] flex justify-between items-end px-7 lg:px-8 xl:px-10 2xl:px-16 font_urbanist text-[15px] bg-white shadow transition-all duration-300">
-        <ListItem onClick={props.closeCart} key={1} href='/products/category/all-categories' categories>All Categories</ListItem>
-        <ListItem onClick={props.closeCart} key={2} href='/products/category/64d517f6218f4e9ee6253b18?name=new+collection'>New Collection</ListItem>
-        <ListItem onClick={props.closeCart} key={3} href='/products/category/64a59d5816b4c91fa1967b2e?name=women'>Women</ListItem>
-        <ListItem onClick={props.closeCart} key={4} href='/products/category/649b292762a7c100cfb7207f?name=men'>Men</ListItem>
-        <ListItem onClick={props.closeCart} key={5} href='/products/category/64d4dfa643c643cc9c60c672?name=kids'>Kids</ListItem>
-        <ListItem onClick={props.closeCart} key={6} href='/products/category/64d4dfa643c643cc9c60c672?name=baby+products' classes="group hidden 2xl:flex flex-col">Baby Products</ListItem>
-        <ListItem onClick={props.closeCart} key={7} href='/products/category/sale'>Sales</ListItem>
-        <ListItem onClick={props.closeCart} key={8} href='/giftcard' classes="group hidden xl:flex flex-col">Gifts</ListItem>
-        <ListItem onClick={props.closeCart} key={9} href='/products/category/64b5391e2c57908f1e94dc27?name=accessories' classes="group hidden xl:flex flex-col">Accessories</ListItem>
-        <ListItem onClick={props.closeCart} key={10} href='/earn-ufpoints' classes="group hidden lg:flex flex-col">Earn Uf Points</ListItem>
-        <ListItem onClick={props.closeCart} key={11} href='/products/category/wishlist'>Wishlist</ListItem>
+    if (window.matchMedia('(min-width: 760px)').matches) return <nav className="sticky top-0 left-0 right-0 z-40 w-full max-w-[2000px] mx-auto h-[50px] flex justify-between items-end px-7 lg:px-8 xl:px-10 2xl:px-16 font_urbanist text-[15px] bg-white shadow transition-all duration-300">
+        <ListItem onClick={closeCart} key={1} href='/products/category/all-categories' categories>{langObj.categories.item1}</ListItem>
+        <ListItem onClick={closeCart} key={2} href='/products/category/64d517f6218f4e9ee6253b18?name=new+collection'>{langObj.categories.item2}</ListItem>
+        <ListItem onClick={closeCart} key={3} href='/products/category/64a59d5816b4c91fa1967b2e?name=women'>{langObj.categories.item3}</ListItem>
+        <ListItem onClick={closeCart} key={4} href='/products/category/649b292762a7c100cfb7207f?name=men'>{langObj.categories.item4}</ListItem>
+        <ListItem onClick={closeCart} key={5} href='/products/category/64d4dfa643c643cc9c60c672?name=kids'>{langObj.categories.item5}</ListItem>
+        <ListItem onClick={closeCart} key={7} href='/products/category/sale'>{langObj.categories.item6}</ListItem>
+        <ListItem onClick={closeCart} key={8} href='/giftcard' classes="group hidden xl:flex flex-col">{langObj.categories.item7}</ListItem>
+        <ListItem onClick={closeCart} key={9} href='/products/category/64b5391e2c57908f1e94dc27?name=accessories' classes="group hidden xl:flex flex-col">{langObj.categories.item8}</ListItem>
+        <ListItem onClick={closeCart} key={10} href='/earn-ufpoints' classes="group hidden lg:flex flex-col">{langObj.categories.item9}</ListItem>
+        <ListItem onClick={closeCart} key={11} href='/products/category/wishlist'>{langObj.categories.item10}</ListItem>
         <span className="hidden lg:flex mb-2 flex-col justify-center items-center text-sm">
-            Minimum Order
+            {langObj.minimumOrder}
             <p className="font_urbanist_bold text-[13px]">{calculateMinOrder()}</p>
         </span>
     </nav>
@@ -68,6 +70,7 @@ const SecondaryNavbar = (props) => {
 }
 
 export default function Navbar() {
+    const { locale } = useLanguage();
     const { user, country, notifications, getNotifications, address, getAddress } = useUser();
     const { points, getUfBalance, currency } = useWallet();
     const { totalUniqueItems } = useCart();
@@ -84,13 +87,15 @@ export default function Navbar() {
         if (!address) getAddress();
     }, [user])
 
+    const langObj = navLang[locale];
+
     const closeCart = () => {
         document.body.style.overflowY = 'visible'
         setCart(false)
     }
 
     const toggleCart = () => {
-        document.body.style.overflowY = cart ? null : 'hidden'
+        document.body.style.overflowY = cart ? null : 'hidden';
         setCart(!cart)
     }
 
@@ -99,14 +104,14 @@ export default function Navbar() {
         <Logout show={logout} setLogout={setLogout} />
         <LanguageModal show={langModal} setLangModal={setLangModal} />
         <ToTopBtn />
-        <nav className="sticky z-50 font_urbanist w-full h-[45px] md:h-[65px] flex justify-between items-end md:items-center px-7 lg:px-8 xl:px-10 2xl:px-16 bg-white">
+        <nav name="top_level_navbar" className="sticky z-50 font_urbanist w-full h-[45px] md:h-[65px] flex justify-between items-end md:items-center px-7 lg:px-8 xl:px-10 2xl:px-16 bg-white">
             <Link href='/' className='font_copper text-[22px] lg:text-2xl tracking-1 leading-none'><h1>URBAN FITS</h1></Link>
-            <Search classes="hidden md:flex" />
+            <Search classes="hidden md:flex" placeholder={langObj.searchProducts} noResultsMsg={langObj.noResults} />
             <Link href={user && user.email ? '/user/address' : "#"} className="hidden lg:flex items-center text-black">
                 <LocationIcon />
                 <div className="flex flex-col justify-center ml-3 items-start text-[13px]">
-                    <p className="font_urbanist leading-snug">Deliver to</p>
-                    <p className="font_urbanist_bold truncate max-w-[130px]">{address?.shipping_address?.address || "Set your Address"}</p>
+                    <p className="font_urbanist leading-snug">{langObj.addressTitle}</p>
+                    <p className="font_urbanist_bold truncate max-w-[130px]">{address?.shipping_address?.address || langObj.addressTip}</p>
                 </div>
             </Link>
             <button onClick={() => {
@@ -115,23 +120,22 @@ export default function Navbar() {
                 <UserIcon />
                 {user && user.email ? <>
                     <div className="flex flex-col justify-center items-start">
-                        <p className="font_urbanist text-[13px]">Welcome Back</p>
-                        <p className="font_urbanist_bold text-[13px] truncate max-w-[130px]">{user.firstname || user.username}</p>
+                        <span className="font_urbanist text-[13px]">{langObj.greeting}</span>
+                        <span className="font_urbanist_bold text-[13px] truncate max-w-[130px]">{user.firstname || user.username}</span>
                     </div>
                     <span className="absolute top-full w-full h-4 bg-transparent pointer-events-none group-hover:pointer-events-auto"></span>
-                    <div className="absolute top-full translate-y-4 left-1/2 -translate-x-1/2 bg-white w-48 !p-0 text-sm font_urbanist equillibrium_shadow rounded-lg transition-all overflow-hidden opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto">
-                        <Link onClick={closeCart} href="/user/uf-wallet" className="w-full px-4 border-b hover:bg-slate-100 flex justify-between items-center py-3 transition-all">
-                            <span className="font_copper text-base">UF-Points</span>
-                            <p className='font_urbanist_medium'>{points}</p>
+                    <div onClick={closeCart} className="absolute top-full translate-y-4 left-1/2 -translate-x-1/2 bg-white w-48 !p-0 text-sm font_urbanist equillibrium_shadow rounded-lg transition-all overflow-hidden opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto">
+                        <Link href="/user/uf-wallet" className="w-full px-4 border-b hover:bg-slate-100 flex justify-between items-center py-3 transition-all">
+                            <span className="font_copper text-base">{langObj.accountMenu.item1}</span>
+                            <span className='font_urbanist_medium'>{points}</span>
                         </Link>
-                        <Link onClick={closeCart} href="/user/myaccount" className="w-full px-4 border-b hover:bg-slate-100 flex items-center py-3 transition-all">My Dashboard</Link>
-                        <Link onClick={closeCart} href="/user/orders/orders" className="w-full px-4 border-b hover:bg-slate-100 flex items-center py-3 transition-all">My Orders</Link>
-                        <Link onClick={closeCart} href="/user/orders/pending" className="w-full px-4 border-b hover:bg-slate-100 flex items-center py-3 transition-all">Orders in Progress</Link>
-                        <Link onClick={closeCart} href="/user/shopping-lists" className="w-full px-4 border-b hover:bg-slate-100 flex items-center py-3 transition-all">My Shopping Lists</Link>
-                        <span onClick={() => setLogout(!logout)} className="w-full px-4 cursor-pointer hover:bg-slate-100 flex items-center py-3 transition-all gap-x-2"><LogoutIcon />Log Out</span>
+                        <Link href="/user/myaccount" className="w-full px-4 border-b hover:bg-slate-100 flex items-center py-3 transition-all">{langObj.accountMenu.item2}</Link>
+                        <Link href="/user/orders/processing" className="w-full px-4 border-b hover:bg-slate-100 flex items-center py-3 transition-all">{langObj.accountMenu.item3}</Link>
+                        <Link href="/user/shopping-lists" className="w-full px-4 border-b hover:bg-slate-100 flex items-center py-3 transition-all">{langObj.accountMenu.item4}</Link>
+                        <span onClick={() => setLogout(!logout)} className="w-full px-4 cursor-pointer hover:bg-slate-100 flex items-center py-3 transition-all gap-x-2"><LogoutIcon />{langObj.accountMenu.item5}</span>
                     </div>
                 </>
-                    : <><Link href='/auth/login'>Login</Link> &nbsp;/&nbsp;<Link href='/auth/signup'>Register</Link></>}
+                    : <><Link href='/auth/login'>{langObj.login}</Link> &nbsp;/&nbsp;<Link href='/auth/signup'>{langObj.register}</Link></>}
             </button>
             <section className="w-auto lg:ml-5 gap-x-7 xl:gap-x-9 flex items-center justify-end">
                 <button onClick={() => setLangModal(!langModal)} className="flex items-center gap-x-1.5">
@@ -144,9 +148,9 @@ export default function Navbar() {
                         <path d="M1.46875 4V4.24496L1.66232 4.39509L8.73082 9.8774C9.76266 10.7325 11.2415 10.7325 12.2733 9.87735L19.3378 4.39501L19.5312 4.24488V4V2.66667C19.5312 2.03131 19.0195 1.5 18.375 1.5H2.625C1.98053 1.5 1.46875 2.03131 1.46875 2.66667V4ZM2.27269 5.10298L1.46875 4.48753V5.5V13.3333C1.46875 13.9687 1.98053 14.5 2.625 14.5H18.375C19.0195 14.5 19.5312 13.9687 19.5312 13.3333V5.5V4.48753L18.7273 5.10298L12.1961 10.103L12.1737 10.1201L12.1534 10.1396C11.7444 10.5329 11.1278 10.75 10.4851 10.75C9.84161 10.75 9.23991 10.5328 8.85355 10.1464L8.83018 10.1231L8.80394 10.103L2.27269 5.10298ZM1 2.66667C1 1.97591 1.1331 1.58565 1.33026 1.36451C1.5156 1.15663 1.8475 1 2.5 1H18.375C19.0269 1 19.4031 1.15676 19.6231 1.38154C19.8453 1.60847 20 1.99809 20 2.66667V13.3333C20 14.0019 19.8453 14.3915 19.6231 14.6185C19.4031 14.8432 19.0269 15 18.375 15H2.625C1.97308 15 1.59689 14.8432 1.37686 14.6185C1.15471 14.3915 1 14.0019 1 13.3333V2.66667Z" fill="black" stroke="black" />
                     </svg>
                 </Link> : null}
-                <button onClick={() => { toggleCart(); scrollTo(0, 0) }} className="hidden md:block relative">
+                <button onClick={() => { toggleCart(); scrollTo(0, 0) }} name='desktop_nav_btn' className="hidden md:block relative">
                     {totalUniqueItems !== 0 ? <span className="absolute top-0 right-0 translate-x-1/2 -translate-y-1/2 w-4 h-4 flex justify-center items-center border border-white text-white text-[10px] aspect-square rounded-full bg-[#FF4A60]">{totalUniqueItems}</span> : null}
-                    <Image src={bag} />
+                    {cart ? <i className="fa-solid fa-xmark text-gotham-black text-2xl align-middle" /> : <Image src={bag} />}
                 </button>
                 {user && window.matchMedia('(max-width: 760px)').matches ? <Link href='/earn-ufpoints'>
                     <svg xmlns="http://www.w3.org/2000/svg" width="25" height="21" viewBox="0 0 25 21" fill="none">
@@ -162,6 +166,7 @@ export default function Navbar() {
             cart={cart}
             closeCart={closeCart}
             toggleCart={toggleCart}
+            langObj={langObj}
             logout={logout}
             setLogout={setLogout}
             currency={currency}

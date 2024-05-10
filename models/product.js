@@ -6,6 +6,10 @@ const ProductSchema = new mongoose.Schema({
         required: [true, "Please enter a name for your product"],
         trim: true
     },
+    sku_number: {
+        type: Number,
+        default: 1000
+    },
     cover_image: { type: String },
     price: {
         type: Number,
@@ -48,9 +52,8 @@ const ProductSchema = new mongoose.Schema({
     },
     variants: [
         {
-            color: {
-                type: String,
-            },
+            sku: String,
+            color: { type: String },
             color_name: { type: String },
             images: {
                 type: Array,
@@ -82,14 +85,15 @@ const ProductSchema = new mongoose.Schema({
         width: { type: String, required: true },
         height: { type: String, required: true },
         weight: { type: Number, required: true }
-    }
-
+    },
+    sales: Number
 }, { timestamps: true })
 
 ProductSchema.pre('save', function (next) {
-    this.variants.forEach((variant) => {
+    this.variants.forEach(variant => {
         const totalQuantity = variant.sizes.reduce((total, size) => total + size.quantity, 0);
         variant.stock = totalQuantity;
+        variant.sku = `UF${this.sku_number}-${variant.color}`;
     });
     next();
 });

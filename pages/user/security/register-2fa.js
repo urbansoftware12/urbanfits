@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router';
 import useUser from '@/hooks/useUser';
+import useLanguage from '@/hooks/useLanguage';
+import { securityTab as securityLang } from '@/locales';
 import Head from 'next/head';
 import Button from '@/components/buttons/simple_btn';
 import Loader from '@/components/loaders/loader';
@@ -12,12 +14,15 @@ import toaster from '@/utils/toast_function';
 import axios from 'axios';
 
 export default function Security() {
-    const router = useRouter()
-    const { user, isLoggedIn, updateUser } = useUser()
+    const router = useRouter();
+    const { user, isLoggedIn, updateUser } = useUser();
+    const { locale } = useLanguage();
     const [qrUrl, setQrUrl] = useState(null)
     const [qrSecret, setQrSecret] = useState(null)
     const [totp, setTotp] = useState(null)
     const [loading, setLoading] = useState(false)
+    const langObj = securityLang[locale];
+
     useEffect(() => {
         const getQrCode = async () => {
             if (qrUrl && qrSecret) return
@@ -66,16 +71,16 @@ export default function Security() {
             <div className="w-full p-4 border-b border-gray-50 flex justify-between items-center">
                 <Link href="/user/security" className='fa-solid fa-chevron-left text-xl'></Link>
                 <div className="flex flex-col justify-center items-center font_urbanist text-xs text-gray-400">
-                    <h1 className="font_urbanist_medium text-lg">Register for 2FA</h1>
-                    All data will be encrypted
+                    <h1 className="font_urbanist_medium text-lg">{langObj.enable2fa}</h1>
+                    {langObj.encryptedMsg}
                 </div>
                 <i className='w-0 h-0' />
             </div>
             {loading ? <Loader /> : null}
             <section className="w-full h-full p-4 flex flex-col justify-between gap-y-3 font_urbanist">
                 <div className="w-full flex flex-col items-start gap-y-3">
-                    <p className='text-sm'>Step 1: install 'Google Authenticator' app from Google Play or App Store</p>
-                    <p className='text-sm'>Step 2: Scan the QR Code by your Google Authenticator app, or you can add account manually.</p>
+                    <p className='text-sm'>{langObj.registerMethods.msg1}</p>
+                    <p className='text-sm'>{langObj.registerMethods.msg2}</p>
                     <span className="w-36 my-5 aspect-square mx-auto">
                         {qrUrl ? <Image width={250} height={250} src={qrUrl} alt="Qr code" className="w-full h-full object-cover" /> :
                             <ImgLoader />}
@@ -83,13 +88,13 @@ export default function Security() {
                     <button onClick={() => navigator.clipboard.writeText(qrSecret)} className="w-full py-1 flex justify-between items-center gap-x-2 text-center text-black font_urbanist_medium text-[15px] rounded-lg border-[4px] border-transparent focus:border-[#d7bd69ad] transition-all">
                         <span className='max-w-[75vw] truncate'>{qrSecret || ''}</span>
                         <i className="fa-solid fa-copy text-black" /></button>
-                    <p className="text-sm text-gray-400">If you are unable to scan the QR code, please enter thiscode manually into the app.</p>
+                    <p className="text-sm text-gray-400">{langObj.registerMethods.msg3}</p>
 
                     <div className="w-full my-3 py-3 px-5 border rounded-full flex justify-around text-sm">
-                        <input onChange={(e) => setTotp(e.target.value)} value={totp} type="text" className='w-full outline-none' placeholder='Enter the code to verify' />
+                        <input onChange={(e) => setTotp(e.target.value)} value={totp} type="text" className='w-full outline-none' placeholder={langObj.enterCodePlaceholder} />
                     </div>
                 </div>
-                <Button disabled={!totp || totp.length < 5} onClick={onTotpConfirm} my="0" classes="w-full" fontSize="text-sm">Confirm</Button>
+                <Button disabled={!totp || totp.length < 5} onClick={onTotpConfirm} my="mb-16" classes="w-full" fontSize="text-sm">{langObj.confirm}</Button>
             </section>
         </main>
     </>

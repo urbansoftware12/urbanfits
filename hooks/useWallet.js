@@ -34,7 +34,7 @@ const useWallet = create((set, get) => ({
         try {
             const { data } = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/api/tasks/get/user-tasks`)
             if (callback) callback(data)
-        } catch (e) { console.log(e); toaster("error", e.response.data.msg || "Oops! something went wrong, please retry.") }
+        } catch (e) { console.log(e); toaster("error", e?.response?.data?.msg || "Oops! something went wrong, please retry.") }
         finally { set(() => ({ walletLoading: false })) }
     },
 
@@ -101,7 +101,7 @@ const useWallet = create((set, get) => ({
             })
             toaster("success", data.msg)
             if (callback) callback(data, ssUrl)
-            else return ssUrl
+            return ssUrl
         } catch (e) { console.log(e); toaster("error", e.response.data.msg) }
     },
 
@@ -152,27 +152,8 @@ const useWallet = create((set, get) => ({
         return returnRates
     },
 
-    formatPrice: (amount = 0, currency = get().currency, rate = get().exchange_rate) => {
-        return `${amount.toFixed(3).replace(/\.?0+$/, '')}د.إ`; // For initial launch
-        // if (!currencies.includes(currency)) return toaster("error", "Currency conversion failed. Invalid currency!")
-        // const currencyFormats = {
-        //     "AED": { symbol: 'د.إ', position: 'left' },
-        //     "SAR": { symbol: '﷼', position: 'right' },
-        //     "PKR": { symbol: 'Rs.', position: 'left' }
-        // };
-        // const format = currencyFormats[currency];
-        // const price = amount * rate;
+    formatPrice: (amount = 0) => `${amount.toFixed(3).replace(/\.?0+$/, '')}د.إ`,
 
-        // if (format.position === 'left') return `${format.symbol} ${Number.isInteger(price) ? price : price.toFixed(3).replace(/\.?0+$/, '')}`;
-        // else return `${Number.isInteger(price) ? price : price.toFixed(3).replace(/\.?0+$/, '')} ${format.symbol}`;
-    },
-
-    formatPriceNum: (amount = 0, currency = get().currency, rate = get().exchange_rate) => {
-        return amount.toFixed(3).replace(/\.?0+$/, ''); // For initial launch
-        // if (!currencies.includes(currency)) return toaster("error", "Currency conversion failed. Invalid currency!")
-        // const price = amount * rate;
-        // return price.toFixed(3).replace(/\.?0+$/, '')
-    }
-
+    formatPriceNum: (amount = 0) => parseFloat(amount.toFixed(3).replace(/\.?0+$/, ''))
 }))
 export default useWallet

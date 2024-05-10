@@ -5,6 +5,6 @@ const uploadImage = async (file, fileKey) => {
         const { data } = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/api/S3/signed-url?file_key=${fileKey}`)
         await axios.put(data.uploadUrl, file)
         return '/' + fileKey
-    } catch (error) { console.log(error); }
+    } catch (error) { console.log(error.response); }
 }
 export default uploadImage

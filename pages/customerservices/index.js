@@ -29,7 +29,6 @@ export default function CustomerServices(props) {
                 <MenuLink href='/myaccount' >My Account</MenuLink>
                 <MenuLink href='/sizeguide' >Size Guide</MenuLink>
                 <MenuLink href='/cfproducts' >Counterfeit Products</MenuLink>
-                <MenuLink href='/sitemap' >Sitemap</MenuLink>
                 <MenuLink href='/companyinfo' >Company Information</MenuLink>
             </div>
         </section>

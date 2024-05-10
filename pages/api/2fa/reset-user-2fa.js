@@ -10,10 +10,16 @@ const RsetUser2fa = async (req, res) => StandardApi(req, res, { method: "PUT", v
     let user = await User.findById(user_id)
     if (!user) return res.status(404).json({ success: false, msg: "User not found" })
 
-    user.two_fa_activation_date = undefined
-    user.two_fa_secret = undefined
-    user.two_fa_enabled = false
-    await user.save()
+    user = await User.findByIdAndUpdate(user_id, {
+        $unset: {
+            two_fa_activation_date: 1,
+            two_fa_secret: 1
+        },
+        $set: {
+            two_fa_enabled: false
+        }
+    }, { _immutability: "disable", new: true, lean: true })
+
     res.status(200).json({
         success: true,
         msg: `${user.username}'s 2FA has been reset.`,

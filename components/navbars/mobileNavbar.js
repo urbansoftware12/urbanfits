@@ -2,7 +2,9 @@ import { useState } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
+import useLanguage from '@/hooks/useLanguage';
 const Search = dynamic(() => import('../search'));
+import { mobileNavMenu as mblNavLang } from '@/locales';
 
 const MobileListItem = (props) => {
     const [open, setOpen] = useState(false)
@@ -26,74 +28,75 @@ const MobileListItem = (props) => {
 }
 
 function MobileNavbar({ user, cart, toggleCart, logout, setLogout, totalUniqueItems }) {
-    const router = useRouter()
-    const url = router.pathname
-    const [menu, setMenu] = useState(false)
-    const toggleMenu = () => setMenu(!menu)
+    const router = useRouter();
+    const url = router.pathname;
+    const { locale } = useLanguage();
+    const [menu, setMenu] = useState(false);
+    const toggleMenu = () => setMenu(!menu);
     const Exception = url.startsWith("/about") || window.matchMedia('(max-width: 760px)').matches && (url.startsWith('/auth'))
     const SearchException = url.startsWith("/about") || (window.matchMedia('(max-width: 760px)').matches && (url.startsWith('/auth') || (url.startsWith('/user/') && url.length > '/user/'.length)))
 
+    const langObj = mblNavLang[locale];
+
     if (!Exception) return <>
         {!SearchException && <section className="sticky top-0 left-0 right-0 z-50 w-full h-[70px] flex justify-center items-center px-7 lg:px-8 xl:px-10 2xl:px-16 font_urbanist text-[15px] bg-white border-b transition-all duration-300">
-            <Search classes="flex md:hidden" />
+            <Search classes="flex md:hidden" placeholder={langObj.searchProducts} noResultsMsg={langObj.noResults} />
         </section>}
         <section style={{ transform: menu ? "translateX(0)" : "translateX(-100%)" }} className="fixed z-[70] inset-0 w-screen min-h-screen overflow-y-scroll p-4 flex flex-col items-center bg-white overflow-x-hidden transition-all duration-700">
             <nav className="absolute left-0 top-0 right-0 w-full p-4 mb-6 flex justify-center items-center border-b border-gray-50">
                 <button onClick={toggleMenu} className='fa-solid fa-chevron-left absolute left-4 text-xl'></button>
-                <h1 className="font_urbanist_medium text-lg">Site Menu</h1>
+                <h1 className="font_urbanist_medium text-lg">{langObj.siteMenu}</h1>
             </nav>
             <section className="w-full mt-16">
-                <MobileListItem toggleMenu={toggleMenu} key={0} name="All categories" subLinks={[
-                    { name: "New Collection", href: "/products/category/64d517f6218f4e9ee6253b18?name=new+collection" },
-                    { name: "Women", href: "/products/category/64a59d5816b4c91fa1967b2e?name=women" },
-                    { name: "Men", href: "/products/category/649b292762a7c100cfb7207f?name=men" },
-                    { name: "Kids", href: "/products/category/64d4dfa643c643cc9c60c672?name=kids" },
-                    { name: "View All", href: "/products/category/all-categories" }
+                <MobileListItem toggleMenu={toggleMenu} key={0} name={langObj.categoryMenu.heading} subLinks={[
+                    { name: langObj.categoryMenu.item1, href: "/products/category/64d517f6218f4e9ee6253b18?name=new+collection" },
+                    { name: langObj.categoryMenu.item2, href: "/products/category/64a59d5816b4c91fa1967b2e?name=women" },
+                    { name: langObj.categoryMenu.item3, href: "/products/category/649b292762a7c100cfb7207f?name=men" },
+                    { name: langObj.categoryMenu.item4, href: "/products/category/64d4dfa643c643cc9c60c672?name=kids" },
+                    { name: langObj.categoryMenu.item5, href: "/products/category/all-categories" }
                 ]} />
-                <MobileListItem toggleMenu={toggleMenu} key={1} name="Earn UF points" subLinks={[
-                    { name: "Dashboard", href: "/user/myaccount" },
-                    { name: "UF Points History", href: "/user/uf-wallet/history" },
-                    { name: "How to earn UF Points?", href: "earn-ufpoints" }
+                <MobileListItem toggleMenu={toggleMenu} key={1} name={langObj.ufPointsMenu.heading} subLinks={[
+                    { name: langObj.ufPointsMenu.item1, href: "/user/myaccount" },
+                    { name: langObj.ufPointsMenu.item2, href: "/user/uf-wallet/history" },
+                    { name: langObj.ufPointsMenu.item3, href: "earn-ufpoints" }
                 ]} />
-                <MobileListItem toggleMenu={toggleMenu} key={2} name="Sale offers" subLinks={[
-                    { name: "Up to 50% off", href: "#" },
-                    { name: "Women - all under $50", href: "#" },
-                    { name: "Men - all under $50", href: "#" },
-                    { name: "Accessories - starts from $30", href: "#" }
+                <MobileListItem toggleMenu={toggleMenu} key={2} name={langObj.saleMenu.heading} subLinks={[
+                    { name: langObj.saleMenu.item1, href: "#" },
+                    { name: langObj.saleMenu.item2, href: "#" },
+                    { name: langObj.saleMenu.item3, href: "#" },
+                    { name: langObj.saleMenu.item4, href: "#" }
                 ]} />
-                <MobileListItem toggleMenu={toggleMenu} key={3} name="Accessories" subLinks={[
-                    { name: "Shoes", href: "#" },
-                    { name: "Jewellery", href: "#" },
-                    { name: "Toys", href: "#" }
+                <MobileListItem toggleMenu={toggleMenu} key={3} name={langObj.accessoriesMenu.heading} subLinks={[
+                    { name: langObj.accessoriesMenu.item1, href: "#" },
+                    { name: langObj.accessoriesMenu.item2, href: "#" },
+                    { name: langObj.accessoriesMenu.item3, href: "#" }
                 ]} />
-                <MobileListItem toggleMenu={toggleMenu} key={4} name="Size Guides" subLinks={[
-                    { name: "Men", href: "/customerservices/sizeguide/women" },
-                    { name: "Women", href: "/customerservices/sizeguide/men" },
-                    { name: "Kids", href: "/customerservices/sizeguide/kids" }
+                <MobileListItem toggleMenu={toggleMenu} key={4} name={langObj.sizeGuideMenu.heading} subLinks={[
+                    { name: langObj.sizeGuideMenu.item1, href: "/customerservices/sizeguide/women" },
+                    { name: langObj.sizeGuideMenu.item2, href: "/customerservices/sizeguide/men" },
+                    { name: langObj.sizeGuideMenu.item3, href: "/customerservices/sizeguide/kids" }
                 ]} />
-                <MobileListItem toggleMenu={toggleMenu} name="Matching outfits" href="/products/category/matching-outfits" />
-                <MobileListItem toggleMenu={toggleMenu} key={5} name="Order information" subLinks={[
-                    { name: "Track Orders", href: "/trackorder" },
-                    { name: "Delivery", href: "/customerservices/delivery" },
-                    { name: "Returns & Refunds", href: "/customerservices/returns&refunds" }
+                <MobileListItem toggleMenu={toggleMenu} key={5} name={langObj.orderMenu.heading} subLinks={[
+                    { name: langObj.orderMenu.item1, href: "/user/orders/processing" },
+                    { name: langObj.orderMenu.item2, href: "/trackorder" },
+                    { name: langObj.orderMenu.item3, href: "/customerservices/delivery" },
+                    { name: langObj.orderMenu.item4, href: "/customerservices/returns&refunds" }
                 ]} />
-                <MobileListItem toggleMenu={toggleMenu} key={6} name="Support" subLinks={[
-                    { name: "Contact Us", href: "/contact" },
-                    { name: "FAQs", href: "/faq" },
-                    { name: "Support Ticket", href: "#" }
+                <MobileListItem toggleMenu={toggleMenu} key={6} name={langObj.supportMenu.heading} subLinks={[
+                    { name: langObj.supportMenu.item1, href: "/contact" },
+                    { name: langObj.supportMenu.item2, href: "/faq" }
                 ]} />
-                <MobileListItem toggleMenu={toggleMenu} key={7} name="Policies" subLinks={[
-                    { name: "Terms & Conditions", href: "/policies/terms&conditions" },
-                    { name: "Privacy Policy", href: "/policies/privacypolicy" },
-                    { name: "Cookies Policy", href: "/policies/cookiespolicy" },
-                    { name: "Company information", href: "/customerservices/companyinfo" }
+                <MobileListItem toggleMenu={toggleMenu} key={7} name={langObj.policyMenu.heading} subLinks={[
+                    { name: langObj.policyMenu.item1, href: "/policies/terms&conditions" },
+                    { name: langObj.policyMenu.item2, href: "/policies/privacypolicy" },
+                    { name: langObj.policyMenu.item3, href: "/policies/cookiespolicy" },
+                    { name: langObj.policyMenu.item4, href: "/customerservices/companyinfo" }
                 ]} />
-                <MobileListItem toggleMenu={toggleMenu} key={8} name="Stories" href="/stories" />
-                <MobileListItem toggleMenu={toggleMenu} key={9} name="About Us" href="/about" />
-                <MobileListItem toggleMenu={toggleMenu} key={10} name="Site Map" href="/site-map" />
+                <MobileListItem toggleMenu={toggleMenu} key={8} name={langObj.stories} href="/stories" />
+                <MobileListItem toggleMenu={toggleMenu} key={9} name={langObj.about} href="/about" />
             </section>
             <p className="my-5 font_urbanist_medium text-sm text-gray-500">Urban Fits LLC (7053037)</p>
-            {user && user.email ? <button onClick={() => setLogout(!logout)} className="w-full py-3 bg-gray-50 rounded-full font_urbanist_medium text-sm">Sign Out</button> : null}
+            {user && user.email ? <button onClick={() => setLogout(!logout)} className="w-full py-3 bg-gray-50 rounded-full font_urbanist_medium text-sm">{langObj.signout}</button> : null}
         </section>
         <section className="fixed z-[60] bottom-4 left-1/2 -translate-x-1/2 bg-gray-50 w-[90%] md:w-3/5 h-14 rounded-full border flex justify-around items-center">
             <button onClick={toggleMenu}>

@@ -2,15 +2,14 @@ import Giftcard from "@/models/giftcard"
 import ConnectDB from "./connect_db";
 import CryptoJS from "crypto-js";
 import jwt from "jsonwebtoken";
-import { serialize, } from "cookie";
-import { jwtExpiries } from "@/uf.config";
-const isProdEnv = process.env.NEXT_PUBLIC_DEV_ENV === "PRODUCTION";
+import { serialize } from "cookie";
+import { jwtExpiries, isProdEnv } from "@/uf.config";
 
 export const generateRandomInt = (from, to) => Math.floor(Math.random() * (to - from + 1)) + from;
 export const HashValue = (value) => CryptoJS.SHA256(value).toString(CryptoJS.enc.Hex);
 export const SignJwt = (data, expiry) => jwt.sign(data, process.env.NEXT_PUBLIC_SECRET_KEY, expiry ? { expiresIn: expiry } : {});
 export const DeleteCookie = (name) => document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
-export const getDateOfTimezone = (timeZone) => new Date(new Date().toLocaleDateString('en-US', { timeZone }))
+export const getDateOfTimezone = (timeZone = process.env.NEXT_PUBLIC_DEFAULT_TIMEZONE) => new Date(new Date().toLocaleDateString('en-US', { timeZone }))
 const getDateOfTimezoneIntl = (timeZone) => new Date(new Intl.DateTimeFormat('en-US', { timeZone, year: 'numeric', month: 'numeric', day: 'numeric' }).format(new Date()))
 
 export const isValidTimeZone = (timeZone) => {
@@ -18,6 +17,13 @@ export const isValidTimeZone = (timeZone) => {
         new Date().toLocaleString('en', { timeZone });
         return true;
     } catch (error) { return false }
+}
+
+export const get12hFormatTime = (timestamp) => {
+    const date = new Date(timestamp);
+    let hour = date.getHours();
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    return `${hour % 12 || 12} ${ampm}`;
 }
 
 export const generateRandIntWithProbabilities = (numbers, probabilities) => {
@@ -38,9 +44,17 @@ export const generateRandIntWithProbabilities = (numbers, probabilities) => {
     return numbers[numbers.length - 1];
 }
 
-const generatePassword = (email) => {
-    const length = generateRandomInt(8, 11);
-    const key = `ABCDEFGHIJKLMNOPQRSTUVWXYZ${email}abcdefghijklmnopqrstuvwxyz0123456789`;
+export const groupBy = (array, key) => {
+    return array.reduce((result, item) => {
+        if (!result[item[key]]) result[item[key]] = [];
+        result[item[key]].push(item);
+        return result;
+    }, {});
+}
+
+const generatePassword = (passLength) => {
+    const length = passLength || generateRandomInt(8, 11);
+    const key = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     let password = "";
     // Generate a random password of the specified length
     for (let i = 0; i < length; i++) {

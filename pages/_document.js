@@ -11,7 +11,7 @@ export default function Document() {
     <body>
       <Main />
       <NextScript />
-      <script src='https://accounts.google.com/gsi/client' strategy='beforeInteractive' />
+      <script src="https://accounts.google.com/gsi/client" async></script>
       <script src="https://kit.fontawesome.com/4e881d944d.js" crossorigin="anonymous" />
     </body>
   </Html>

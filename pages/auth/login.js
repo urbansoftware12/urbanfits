@@ -1,34 +1,39 @@
 import { useState, useEffect, useRef } from 'react'
 import AuthPage from '.'
+import { useRouter } from 'next/router';
 import Link from 'next/link'
 import Button from '@/components/buttons/simple_btn'
 import Head from 'next/head'
 import Tooltip from '@/components/tooltip'
-import toaster from '@/utils/toast_function'
 import AlertPage from '@/components/alertPage'
-import { useRouter } from 'next/router'
 import useUser from '@/hooks/useUser'
 import * as Yup from 'yup'
 import { useFormik } from 'formik'
 //Image imports
 import Image from 'next/image'
 import google_logo from '@/public/logos/google-logo.svg'
-import { DeleteCookie } from '@/utils/cyphers'
 
 
 export default function Login() {
     const router = useRouter()
     const { user, signIn, signInWithGoogle, isLoggedIn, userLoading } = useUser();
     const [showPass, setShowPass] = useState(false)
-    const passRef = useRef()
+    const passRef = useRef();
 
     useEffect(() => {
+        const { google } = window;
         if (!google?.accounts) { return };
         const googleClient = google.accounts.id;
         googleClient.initialize({
             client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
+            use_fedcm_for_prompt: true,
+            ux_mode: "popup",
             callback: googleSession => signInWithGoogle(googleSession.credential, null, router)
         });
+        google.accounts.id.renderButton(
+            document.getElementById("signin_with_google_btn"),
+            { width: "1000px", size: "large" }
+        );
 
         return () => googleClient.cancel()
     }, []);
@@ -49,16 +54,6 @@ export default function Login() {
         validationSchema: loginSchema,
         onSubmit: values => signIn(values, null, router)
     })
-
-    const handleSignIn = async () => {
-        if (!google?.accounts) return;
-        if (isLoggedIn()) return toaster("info", "You are already singned in");
-        DeleteCookie("g_state");
-        google.accounts.id.prompt((res) => {
-            console.log(res);
-            if (res.j && res.j == "opt_out_or_no_session") toaster("info", "You dont have any google account to sign in with.")
-        });
-    }
 
     if (isLoggedIn() && user?.email) return <AlertPage type="success" heading="You are already signed in !" />
     return <>
@@ -103,12 +98,8 @@ export default function Login() {
                         <span className="w-2/5 h-px bg-gray-200"></span>
                     </div>
                     <Link href='/auth/signup' className='hidden lg:block underline text-xs md:text-sm'><h1 className='w-full text-center'>Create a New Account</h1></Link>
-                    {/* <button type='button' onClick={() => providerSignIn("google")} name='google' className="group w-full h-12 my-4 py-2 px-2 flex justify-center items-center bg-gray-50 text-lg border border-gray-200 rounded-full hover:shadow-xl transition">
-                        <Image src={google_logo} width={50} height={50} className='w-6 md:w-8 mr-3' alt="google" />
-                        <span className='max-w-0 whitespace-nowrap overflow-hidden transition-all duration-500 group-hover:max-w-[8rem]'>Login with&nbsp;</span>
-                        Google
-                    </button> */}
-                    <button type='button' onClick={handleSignIn} name='google' className="group w-full h-12 my-4 py-2 px-2 flex justify-center items-center bg-gray-50 text-lg border border-gray-200 rounded-full hover:shadow-xl transition">
+                    <button type='button' name='google' onClick={() => document.querySelector("#signin_with_google_btn").click()} className="relative group cursor-default w-full h-12 my-4 py-2 px-2 flex justify-center items-center bg-gray-50 text-lg border border-gray-200 rounded-full hover:shadow-xl transition">
+                        <span id="signin_with_google_btn" className='absolute left-1/2 -translate-x-1/2 opacity-0'></span>
                         <Image src={google_logo} width={50} height={50} className='w-6 md:w-8 mr-3' alt="google" />
                         <span className='max-w-0 whitespace-nowrap overflow-hidden transition-all duration-500 group-hover:max-w-[8rem]'>Login with&nbsp;</span>
                         Google

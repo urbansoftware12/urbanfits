@@ -2,5 +2,5 @@ import React from 'react'
 import OrdersPage from '.'
 
 export default function cancelledorders() {
-  return <OrdersPage status="returned" />
+  return <OrdersPage status="cancelled" />
 }

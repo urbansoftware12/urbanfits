@@ -8,6 +8,7 @@ import { SignJwt, SetSessionCookie, EncryptOrDecryptData, getDateOfTimezone } fr
 import axios from "axios";
 import UAParser from "ua-parser-js";
 import { AddPoints } from "@/utils/uf-points";
+import SaveSignsMetrics from "@/utils/signs-metrics";
 import StandardApi from "@/middlewares/standard_api";
 
 const SignupCallback = async (req, res) => StandardApi(req, res, { method: "POST", verify_user: false, verify_admin: false }, async () => {
@@ -80,6 +81,7 @@ const SignupCallback = async (req, res) => StandardApi(req, res, { method: "POST
         })
         const userLetter = await Newsletter.findOne({ email: credentials.email, user: "guest" })
         if (userLetter) return userLetter.update({ active: true, user: user._id })
+        await SaveSignsMetrics("signup", user._id)
     }
 })
 export default SignupCallback

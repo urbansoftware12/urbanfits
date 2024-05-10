@@ -2,6 +2,7 @@ import { SNSClient } from "@aws-sdk/client-sns";
 import { PublishCommand } from "@aws-sdk/client-sns";
 
 const sendSMS = async (to, msg) => {
+    return
     try {
         const snsClient = new SNSClient({
             region: 'eu-north-1',

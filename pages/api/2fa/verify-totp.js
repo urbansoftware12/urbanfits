@@ -4,6 +4,7 @@ import User from "@/models/user";
 import { sendNotification, sendAdminNotification } from "@/utils/send_notification";
 import { SignJwt, SetSessionCookie } from "@/utils/cyphers";
 import { jwtExpiries } from "@/uf.config";
+import UAParser from "ua-parser-js";
 import StandardApi from "@/middlewares/standard_api";
 
 const VerfiyTotp = async (req, res) => StandardApi(req, res, { method: "POST", verify_user: false, verify_admin: false }, async () => {
@@ -11,7 +12,7 @@ const VerfiyTotp = async (req, res) => StandardApi(req, res, { method: "POST", v
     if (!user_id || !totp_code) return res.status(401).json({ success: false, msg: "All valid parameters required. Query Parameters: user_id, totp_code" })
 
     await ConnectDB()
-    let user = await User.findById(user_id).select('+two_fa_secret')
+    let user = await User.findById(user_id).select('+two_fa_secret').lean();
     if (!user) return res.status(404).json({ success: false, msg: "User does not exist." })
     if (!user.two_fa_secret || !user.two_fa_enabled) return res.status(400).json({ success: false, msg: "This user does not have 2FA enabled." })
 
@@ -37,7 +38,7 @@ const VerfiyTotp = async (req, res) => StandardApi(req, res, { method: "POST", v
             createdAt: user.createdAt,
             ...(user.role && { role: user.role }),
             ...(user.two_fa_activation_date && { two_fa_activation_date: user.two_fa_activation_date })
-        }, (remember_me && remember_me === true) ? jwtExpiries.extended : jwtExpiries.default);
+        }, jwtExpiries.default);
 
         res.status(200).json({
             success: true,
@@ -61,7 +62,7 @@ const VerfiyTotp = async (req, res) => StandardApi(req, res, { method: "POST", v
             }
         })
     }
-    else return res.status(500).json({
+    else return res.status(401).json({
         success: false,
         msg: "The code is either wrong or expired. Please try again."
     })

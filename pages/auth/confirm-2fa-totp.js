@@ -15,11 +15,11 @@ export default function Login() {
     const [totp, setTotp] = useState('')
 
     const onVerifyClick = async (user_id) => {
-        if (!isLoggedIn()) return toaster("info", "You are already singned in")
+        if (isLoggedIn()) return toaster("info", "You are already singned in")
         if (!user_id || user_id.length < 18) return toaster("error", "Something went wrong, please try login again.")
         useUser.setState({ userLoading: true });
         try {
-            const { data } = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/api/2fa/verify-totp?user_id=${user_id}&totp_code=${totp}`)
+            const { data } = await axios.post(`${process.env.NEXT_PUBLIC_HOST}/api/2fa/verify-totp?user_id=${user_id}&totp_code=${totp}`)
             await updateUser(data.payload, true)
             useUser.setState({ guestUser: null });
             router.replace('/')

@@ -1,6 +1,8 @@
 import { useRef, useState } from 'react'
 import Link from 'next/link'
 import useUser from '@/hooks/useUser';
+import useLanguage from '@/hooks/useLanguage';
+import { emailTab as emailLang } from '@/locales';
 import Button from '@/components/buttons/simple_btn';
 import Tooltip from '@/components/tooltip';
 import Loader from '@/components/loaders/loader';
@@ -12,15 +14,16 @@ import axios from 'axios';
 import mongoose from 'mongoose';
 
 export default function ChangeEmail() {
-    const { user, isLoggedIn, matchOtpAndUpdate } = useUser()
-    const [showPass, setShowPass] = useState(false)
+    const { user, isLoggedIn, matchOtpAndUpdate } = useUser();
+    const { locale } = useLanguage();
+    const [showPass, setShowPass] = useState(false);
     const passRef = useRef()
     const [otpId, setOtpId] = useState(null)
     const [otp, setOtp] = useState("")
     const [loading, setLoading] = useState(false)
-    const initialSignupValues = { new_email: '', old_email: user.email, password: '' }
+
     const { values, errors, touched, handleBlur, handleChange, handleReset, handleSubmit } = useFormik({
-        initialValues: initialSignupValues,
+        initialValues: { new_email: '', old_email: user?.email, password: '' },
         validationSchema: Yup.object({
             new_email: Yup.string().email().required("Please enter your new email address"),
             old_email: Yup.string().email().required(),
@@ -52,25 +55,27 @@ export default function ChangeEmail() {
         setLoading(false)
     }
 
+    const langObj = emailLang[locale];
+
     if ((user?.register_provider !== "urbanfits" || window.matchMedia('(min-width: 1024px)').matches) && !isLoggedIn()) return <Error404 />
     return <main className='w-screen h-screen bg-white flex flex-col transition-all duration-500'>
         <div className="w-full p-4 border-b border-gray-50 flex justify-between items-center">
             <Link href="/user/emailaddress" className='fa-solid fa-chevron-left text-xl'></Link>
             <div className="flex flex-col justify-center items-center font_urbanist text-xs text-gray-400">
-                <h1 className="font_urbanist_medium text-lg">Change the linked email</h1>
-                All data will be encrypted
+                <h1 className="font_urbanist_medium text-lg">{langObj.title}</h1>
+                {langObj.encryptedMsg}
             </div>
             <i className='w-0 h-0' />
         </div>
         {loading ? <Loader /> : null}
         <form onSubmit={handleSubmit} onReset={handleReset} className="w-full h-full p-4 mt-7 font_urbanist flex flex-col justify-between">
             <section className="w-full">
-                <label htmlFor="email" className='font_urbanist text-sm'>New Email Address</label>
+                <label htmlFor="email" className='font_urbanist text-sm'>{langObj.newMail}</label>
                 <div className={`relative data_field flex items-center border-b ${touched.new_email && errors.new_email ? "border-red-500" : "hover:border-pink-300"} transition py-2 mb-4`}>
                     {touched.new_email && errors.new_email ? <Tooltip classes="form-error" content={errors.new_email} /> : null}
                     <input className="w-full outline-none border-none" name="new_email" id="new_email" value={values.new_email} onBlur={handleBlur} onChange={handleChange} placeholder='Please new email address' />
                 </div>
-                <label htmlFor="email" className='font_urbanist text-sm'>Current Password</label>
+                <label htmlFor="email" className='font_urbanist text-sm'>{langObj.currentMail}</label>
                 <div className={`relative data_field flex items-center border-b ${touched.new_email && errors.new_email ? "border-red-500" : "hover:border-pink-300"} transition py-2 mb-4`}>
                     {touched.password && errors.password ? <Tooltip classes="form-error" content={errors.password} /> : null}
                     <input ref={passRef} className="w-full outline-none border-none" type={showPass ? "text" : "password"} id="password" value={values.password} onBlur={handleBlur} onChange={handleChange} placeholder='Password' />
@@ -97,8 +102,8 @@ export default function ChangeEmail() {
 
                 </> : null}
             </section>
-            {otpId ? <Button onClick={matchOtpAndUpdateEmail} type="button" loading={loading} disabled={!otp || otp.length < 5} classes="w-full">Change Email</Button> :
-                <Button loading={loading} type="submit" classes="w-full">Send OTP</Button>}
+            {otpId ? <Button onClick={matchOtpAndUpdateEmail} type="button" loading={loading} disabled={!otp || otp.length < 5} classes="w-full mb-16">Change Email</Button> :
+                <Button loading={loading} type="submit" classes="w-full mb-16">{langObj.otpBtn}</Button>}
         </form>
     </main>
 }

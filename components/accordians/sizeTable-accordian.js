@@ -1,3 +1,4 @@
+import { useState } from "react";
 export default function SizeTableAccordian(props) {
     const [open, setOpen] = useState(false)
     const toggleAccordian = () => {
@@ -22,7 +23,7 @@ export default function SizeTableAccordian(props) {
     return (
         <div className="relative p-4 lg:p-6 pb-0 lg:pb-0 outline-none accordion-section rounded-xl bg-gray-50 mb-6 overflow-hidden" tabIndex={1}>
             <div className={`flex justify-between items-center transition ease duration-700 delay-300`}>
-                <div className={`w-full flex justify-between ${open? "items-center": "items-center pb-4 lg:pb-6"} transition-all ease duration-700 overflow-hidden`}>
+                <div className={`w-full flex justify-between ${open ? "items-center" : "items-center pb-4 lg:pb-6"} transition-all ease duration-700 overflow-hidden`}>
                     <p onClick={toggleAccordian} className={`${open ? 'w-70pr lg:w-4/5' : 'w-full'} cursor-pointer font_urbanist_bold text-sm md:text-base  lg:text-lg text-black w-3/4 text-left transition-all duration-300`}>{props.title}</p>
                     <div className={`${props.unitBtns === null ? 'hidden' : null} ${open ? 'right-6 lg:right-10' : 'translate-x-[30vw]'} top-4 lg:top-6 z-30 w-20 md:w-24 mr-2 flex rounded-md font_urbanist text-[10px] lg:text-xs overflow-hidden transition-all duration-300`}>
                         <button onClick={changeSize} name='CM' className={`w-1/2 py-1 lg:py-2 text-center transition-all duration-700 font_copper ${unit === 'CM' ? 'bg-gold text-white' : 'bg-slate-100 text-black'}`}>CM</button>
